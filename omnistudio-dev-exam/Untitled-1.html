@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<!--
+Local server note: If images do not appear when opening this file via file:// on
+mobile devices, run a simple HTTP server from the folder containing this file
+and open the page via http://. Example (PowerShell / Command Prompt):
+
+    python -m http.server 8000
+
+Then open on the device/emulator using your PC IP, e.g.
+
+    http://192.168.1.10:8000/set1.html
+
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FSC Consultant Practice Exam</title>
+<style>
+    /* BASE & PROFESSIONAL LAYOUT (Using structure closer to Untitled-7.html) */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        margin: 0;
+        padding: 0;
+        background-color: #f4f7f9; 
+    }
+    html, body {
+        height: 100%;
+        overflow: auto; /* allow page scrolling on small devices */
+    }
+    
+    /* MAIN LAYOUT WRAPPER - Centered container, non-fixed header */
+    .main-layout-wrapper {
+        max-width: 1200px;
+        margin: 20px auto; /* Simple margin for non-fixed header */
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        min-height: calc(100vh - 40px); /* fill viewport without forcing overflow */
+        height: auto;
+        position: relative; /* CRITICAL: Positioning context for the absolute toggle button */
+        display: flex; /* Make the wrapper a flex container */
+        flex-direction: column; /* Stack children vertically */
+    }
+
+    /* Make primary screens scroll internally when content overflows */
+    #instruction-screen,
+    .review-screen-content,
+    #exam-screen {
+        flex: 1 1 auto;
+        min-height: 0; /* allow children to shrink inside flex layout */
+        overflow: hidden; /* internal containers will provide scroll */
+    }
+
+    /* Ensure review and instruction content scroll internally */
+    #instruction-screen,
+    .review-screen-content {
+        overflow: auto;
+        padding: 30px;
+    }
+
+    /* Header (Exam Name and Timer) */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 30px;
+        border-bottom: 1px solid #ddd;
+        background-color: #2c3e50; /* Brand Blue Header */
+        color: white;
+        border-top-left-radius: 8px;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        border-top-right-radius: 8px;
+    }
+    .header h3 {
+        margin: 0;
+        font-size: 1.5em;
+    }
+    .timer-display {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #1abc9c; 
+    }
+
+    /* EXAM LAYOUT (SIDEBAR + MAIN AREA) */
+    .exam-layout {
+        display: flex;
+        min-height: inherit;
+        flex-grow: 1;
+        align-items: stretch;
+        flex-wrap: nowrap; /* prevent sidebar collapse from wrapping layout */
+        min-height: 0; /* allow flex children to compute proper heights */
+    }
+
+    /* QUESTION NAVIGATOR (SIDEBAR) STYLES */
+    .sidebar {
+        width: 280px; 
+        min-width: 280px;
+        padding: 20px 0 20px 20px;
+        border-right: 1px solid #ddd;
+        background-color: #ecf0f1; 
+        transition: width 0.3s, min-width 0.3s, padding-left 0.3s, transform 0.25s;
+        overflow: hidden; 
+    }
+    
+    /* COLLAPSED STATE STYLES */
+    .sidebar.collapsed {
+        width: 0;
+        min-width: 0;
+        padding: 20px 0;
+        border-right: none;
+        overflow: hidden; /* ensure collapsed sidebar doesn't affect layout */
+        pointer-events: none; /* disable interactions when collapsed */
+    }
+
+    /* QUESTION GRID */
+    .question-tracker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+        padding-right: 20px; 
+    }
+    
+    .tracker-item {
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+        font-weight: 600;
+        background-color: #bdc3c7; 
+        color: #333;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+    }
+    
+    /* --- NEW STYLES FOR SCREENSHOT REPLICATION --- */
+    .explanation-hidden {
+        display: none;
+    }
+
+    .problem-statement-brief {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #e79727; /* Orange/Gold Color */
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+
+    .correct-answers-box {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 6px;
+        background-color: #e8f9f0; /* Light Green Background */
+        border-left: 5px solid #2ecc71; /* Green Bar */
+    }
+    
+    .correct-answers-box h4 {
+        color: #2ecc71;
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1.1em;
+    }
+
+    .correct-option-detail, .incorrect-option-detail {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        line-height: 1.4;
+    }
+    
+    .incorrect-options-header {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #e74c3c; /* Red Color */
+            margin-top: 25px;
+            margin-bottom: 15px;
+    }
+    
+    .reference-links-header {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2c3e50; /* Dark Blue Color */
+            margin-top: 25px;
+            margin-bottom: 10px;
+    }
+    
+    .reference-links-list {
+        list-style-type: disc;
+        padding-left: 20px;
+    }
+    /* --- END NEW STYLES FOR SCREENSHOT REPLICATION --- */
+
+    /* Tracker Color Logic Styles */
+    .current-q { background-color: #3498db !important; color: white !important; border-color: #3498db !important; transform: scale(1.1); }
+    .match-qty-q { background-color: #2ecc71; color: white; border-color: #2ecc71; } 
+    .mismatch-qty-q { background-color: #e74c3c; color: white; border-color: #e74c3c; } 
+    .marked-q { border: 2px solid #f39c12; } 
+    .default-q { background-color: white; color: #333; border: 1px solid #ccc; } 
+
+    /* MAIN EXAM AREA */
+    .exam-main-area {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative; 
+        min-width: 0; /* allow flex child to shrink properly inside flex container */
+        overflow: hidden; /* contain scrolling inside question panel */
+        min-height: 0; /* allow proper flex height calculations */
+    }
+    
+    /* TOGGLE CONTAINER (TOP LEFT - Relative to main-layout-wrapper) */
+    #toggle-container {
+        position: absolute;
+        top: 60px; /* Offset below the header */
+        left: 0; 
+        z-index: 100;
+        transition: left 0.3s;
+    }
+
+    .toggle-btn {
+        background-color: #34495e;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+        border-radius: 0 5px 5px 0; 
+        font-size: 1.2em;
+        line-height: 1;
+        transition: background-color 0.2s;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .toggle-btn:hover {
+        background-color: #2c3e50;
+    }
+
+
+    .question-panel {
+        flex: 1 1 auto; /* allow this area to grow and shrink properly */
+        padding: 25px 30px;
+        position: relative; 
+        overflow: auto; /* scroll content without pushing footer */
+        padding-bottom: 86px; /* leave space for sticky footer so content isn't hidden */
+    }
+
+    /* QUESTION & OPTIONS */
+    .question-header {
+        display: flex; 
+        justify-content: space-between;
+        align-items: flex-start; 
+        padding-bottom: 15px;
+        border-bottom: 1px dashed #ccc;
+        margin-bottom: 20px;
+    }
+    
+    .question-info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+    
+    /* Flag Status (Top Right) */
+    #flag-status-absolute {
+        color: #f39c12;
+        font-weight: bold;
+        font-size: 0.9em;
+        display: none; 
+        position: absolute; 
+        top: 30px; 
+        right: 30px; 
+        padding: 5px 10px;
+        background-color: #fff;
+        border-radius: 4px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .question-text {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #34495e;
+        margin-bottom: 20px;
+    }
+    .options-list {
+        list-style: none;
+        padding: 0;
+    }
+    .option-item {
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        transition: background-color 0.2s, border-color 0.2s;
+        cursor: pointer;
+    }
+    .option-item:hover {
+        background-color: #f8f8f8;
+        border-color: #3498db;
+    }
+    input[type="radio"], input[type="checkbox"] {
+        margin-right: 15px;
+        transform: scale(1.1);
+    }
+    
+    /* NAVIGATION FOOTER */
+    .footer {
+        padding: 15px 30px;
+        border-top: 1px solid #ddd;
+        background-color: #f8f9fa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0; /* Never shrink or move down */
+    }
+
+    /* Keep the exam footer pinned to the bottom of the main exam area */
+    .exam-main-area > .footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 50;
+        width: 100%;
+        left: 0;
+        right: 0;
+        box-sizing: border-box;
+    }
+
+    /* Ensure navigation buttons don't wrap or get clipped */
+    .navigation-buttons {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+
+    .navigation-buttons .brand-btn {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    /* BUTTON STYLES */
+    .brand-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-right: 10px;
+        color: #fff;
+        transition: background-color 0.2s;
+    }
+    .submit-btn {
+        background-color: #2ecc71; 
+    }
+    .secondary-btn {
+        background-color: #3498db; 
+        color: #fff;
+    }
+    #mark-btn {
+        background-color: #f39c12; /* Orange for Mark */
+    }
+    #mark-btn.unmark {
+        background-color: #e74c3c; /* Red for Unmark/Alert */
+    }
+    #pre-submit-review-btn { 
+        background-color: #9b59b6; 
+        color: white;
+        margin-left: 10px; 
+    }
+
+    .hidden { display: none; }
+    
+    /* Initial Screen */
+    #instruction-screen {
+        padding: 50px;
+        text-align: center;
+    }
+
+    /* REVIEW SCREEN CSS */
+    .review-screen-content {
+        padding: 30px;
+    }
+
+    .review-table {
+        border-collapse: collapse;
+        width: 80%;
+        margin: 20px auto;
+        text-align: left;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .review-table th, .review-table td {
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+    }
+
+    .review-table th {
+        background-color: #34495e;
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9em;
+    }
+
+    .review-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .review-table tr:hover {
+        background-color: #f1f1f1;
+    }
+    .review-table .detailed-review-jump {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .review-table .detailed-review-jump:hover {
+        text-decoration: underline;
+    }
+    
+    /* Review Mode specific styles for correctness indication */
+    .correct-answer-rev {
+        border-color: #2ecc71 !important;
+        background-color: #e8f9f0;
+    }
+    .incorrect-user-selected {
+        border-color: #e74c3c !important;
+        background-color: #f9ebeb;
+    }
+
+    /* Style for the Check and X symbols - USING ENTITIES NOW */
+    .symbol-correct {
+        margin-left: 10px; 
+        color: #2ecc71; 
+        font-weight: bold;
+        font-size: 1.2em; 
+    }
+
+    .symbol-incorrect {
+        margin-left: 10px; 
+        color: #e74c3c; 
+        font-weight: bold;
+        font-size: 1.2em; 
+    }
+    
+    /* --- NEW STYLES FOR EXPLANATION PANEL --- */
+    .explanation-panel {
+        margin-top: 30px;
+        padding: 20px;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        background-color: #fcfcfc;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    .exp-header {
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #34495e;
+        margin-top: 15px;
+        padding-bottom: 5px;
+        border-bottom: 1px dashed #ccc;
+    }
+    .explanation-content p {
+        margin-left: 0; /* Override margin from parent style */
+        padding-left: 0;
+        margin-bottom: 10px;
+        line-height: 1.4;
+    }
+    .references-list {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    .references-list li {
+        margin-bottom: 5px;
+    }
+
+    .symbol-correct {
+        margin-left: 10px;
+        color: #2ecc71;
+        font-weight: bold;
+        font-size: 1.2em;
+    }
+    
+    .symbol-incorrect {
+        margin-left: 10px;
+        color: #e74c3c;
+        font-weight: bold;
+        font-size: 1.2em;
+    }
+    .image-list-container {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin: 15px 0;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    .exam-img {
+        width: calc(30% - 10px);
+        max-width: 30%;
+        height: auto;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .exam-img { display: block; object-fit: contain; }
+
+    .explanation-panel .exam-img {
+        border-left: 5px solid #3498db; /* Blue accent for explanation images */
+    }
+
+    /* Responsive: stack images on narrow viewports */
+    @media (max-width: 600px) {
+        .image-list-container {
+            flex-direction: column;
+        }
+        .exam-img {
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+
+    /* LAYOUT ADJUSTMENTS FOR TABLETS / SMALL DESKTOPS */
+    @media (max-width: 900px) {
+        .main-layout-wrapper {
+            margin: 10px;
+            border-radius: 6px;
+        }
+
+        .exam-layout {
+            flex-direction: column; /* Stack sidebar & main on narrow screens */
+            gap: 0;
+        }
+
+        .sidebar {
+            width: 100%;
+            min-width: 0;
+            border-right: none;
+            padding: 12px 14px;
+        }
+
+        /* Hide collapsed sidebar on small screens to free space */
+        .sidebar.collapsed {
+            display: none;
+        }
+
+        #toggle-container {
+            position: fixed;
+            top: 72px;
+            left: 8px;
+        }
+
+        .question-panel {
+            padding: 16px;
+            padding-bottom: 100px; /* keep footer visible */
+        }
+
+        /* make images more visible on mid-size phones/tablets */
+        .image-list-container { gap: 10px; }
+        .exam-img { width: calc(48% - 8px); max-width: 48%; }
+
+        .question-text { font-size: 1em; }
+
+        .exam-main-area > .footer { padding: 10px; }
+
+        .navigation-buttons { flex-wrap: wrap; gap: 8px; }
+    }
+
+    /* VERY SMALL PHONES */
+    @media (max-width: 420px) {
+        .header h3 { font-size: 1.05rem; }
+        .timer-display { font-size: 1rem; }
+        .question-panel { padding: 12px; }
+        .question-text { font-size: 0.98rem; }
+        .tracker-item { width: 28px; height: 28px; line-height: 28px; }
+    }
+
+    /* ===================================================================
+       FORCE IMAGE VISIBILITY & RESPONSIVE THUMBNAILS
+       Ensures images show on mobile and provide sensible sizes across
+       breakpoints. These rules are intentionally explicit to override
+       conflicting styles in device-specific media queries.
+       =================================================================== */
+    .image-list-container {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+        justify-content: flex-start !important;
+        align-items: flex-start !important;
+    }
+
+    .exam-img {
+        display: block !important;
+        object-fit: contain !important;
+        width: 100% !important;
+        max-width: 280px !important;
+        height: auto !important;
+        border: 1px solid #ddd !important;
+        border-radius: 5px !important;
+    }
+
+    /* Two per row on mid-size screens (tablets/large phones) */
+    @media (min-width: 520px) and (max-width: 900px) {
+        .exam-img { width: calc(48% - 6px) !important; max-width: 48% !important; }
+    }
+
+    /* Three per row on wider screens */
+    @media (min-width: 901px) {
+        .exam-img { width: calc(33.33% - 10px) !important; max-width: 33.33% !important; }
+    }
+
+    /* Full width on very small phones */
+    @media (max-width: 519px) {
+        .exam-img { width: 100% !important; max-width: 100% !important; }
+    }
+    /* --- END NEW STYLES --- */
+    
+</style>
+</head>
+<body>
+
+<div class="container main-layout-wrapper">
+    
+    <div class="header">
+        <h3>FSC Consultant Certification Practice  (Set 3)</h3>
+        <div class="timer-display">Time Left: <span id="timer">60:00</span></div>
+    </div>
+
+    <div id="instruction-screen">
+        <h2>★ FSC Practice Exam Instructions</h2>
+        <hr>
+        <p>This exam consists of <strong>50 questions</strong> for the sample.</p>
+        <p>You have 60 minutes to complete the test.</p>
+        <ul>
+            <li>**Red:** You selected less or more options than required.</li>
+            <li>**Green:** You selected the exact number of options required.</li>
+            <li>**Yellow Border (🚩):** Marked for Review.</li>
+            <li>**Blue:** Current Question.</li>
+        </ul>
+        <button id="start-exam-btn" class="brand-btn submit-btn">Start Exam</button>
+    </div>
+
+    <div id="toggle-container" class="hidden">
+        <button class="toggle-btn" id="toggle-sidebar"><span id="sidebar-arrow">«</span></button>
+    </div>
+
+    <div id="exam-screen" class="hidden exam-layout">
+        
+        <div class="sidebar collapsed" id="sidebar">
+            <h4>Question Navigator</h4>
+            <div id="question-tracker" class="question-tracker">
+                </div>
+            <div style="padding-right: 20px; margin-top: 20px;">
+                <button id="pre-submit-review-btn" class="brand-btn" style="width: 100%; margin-right: 0;">Review All</button>
+            </div>
+        </div>
+
+        <div class="exam-main-area" id="exam-main-area">
+            
+            <div id="question-panel" class="question-panel">
+                </div>
+            
+            <div class="footer">
+                <div class="action-buttons" style="display: flex; align-items: center;">
+                    <button id="mark-btn" class="brand-btn">🚩 Mark for Review</button>
+                </div>
+                <div class="navigation-buttons">
+                    <button id="prev-btn" class="brand-btn secondary-btn" disabled>Back</button>
+                    <button id="next-btn-footer" class="brand-btn secondary-btn">Next</button>
+                    <button id="submit-btn-quiz" class="brand-btn submit-btn hidden">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="pre-submit-screen" class="hidden review-screen-content">
+            </div>
+
+    <div id="review-mode-screen" class="hidden review-screen-content">
+        </div>
+
+    <div id="detailed-q-review-screen" class="hidden review-screen-content">
+            <div id="detailed-review-question-content"></div>
+            <div class="footer" style="margin: 20px 0 0 0; border-radius: 0 0 8px 8px;">
+                <div class="action-buttons">
+                <button id="back-to-summary-table-btn" class="brand-btn secondary-btn">Back to Summary</button>
+                </div>
+                <div class="navigation-buttons">
+                <button id="prev-btn-detailed" class="brand-btn secondary-btn" disabled>Previous</button>
+                <button id="next-btn-detailed" class="brand-btn secondary-btn">Next</button>
+            </div>
+            </div>
+    </div>
+
+    <div id="result-screen" class="hidden review-screen-content">
+        </div>
+
+</div>
+
+<script>
+    
+    const originalExamData = [
+   
+   {
+
+        "type": "single",
+
+        "question": "How should developers configure customized nodes for display in ARC? ",
+
+        "image": ['Images/Question60.png','Images/Question60.png'],
+
+        "select": 1,
+
+        "options": [
+
+            {
+
+                "optionId": "1",
+
+                "option": "Reference the Lightning Web Component in the Display properties of the custom ARC relationship graph. ",
+
+                "isCorrect": false,
+
+                "details": "Reference the Lightning Web Component in the Display properties of the custom ARC relationship graph. While FlexCards are built on LWCs, ARC requires referencing the FlexCard, not the raw LWC."
+
+            },
+
+            {
+
+                "optionId": "2",
+
+                "option": "Select Use FlexCard from the node Display tab to show the node in a FlexCard ",
+
+                "isCorrect": false,
+
+                "details": "Select Use FlexCard from the node Display tab to show the node in a FlexCard. This phrasing does not accurately describe the required configuration action in the ARC setup interface."
+
+            },
+
+            {
+
+                "optionId": "3",
+
+                "option": "Reference the FlexCard in the Display properties of the custom ARC relationship graph. ",
+
+                "isCorrect": true,
+
+                "details": "Reference the FlexCard in the Display properties of the custom ARC relationship graph. The ARC Configuration requires a developer to specify the name of the **FlexCard** that will render the custom node's information and actions."
+
+            },
+
+            {
+
+                "optionId": "4",
+
+                "option": "Select Use LWC from the node Display tab to show the node in a Lightning Web Component ",
+
+                "isCorrect": false,
+
+                "details": "Select Use LWC from the node Display tab to show the node in a Lightning Web Component. This is incorrect; ARC nodes are configured using FlexCards, not raw LWCs."
+
+            }
+
+        ],
+
+        "problem_statement": "The question asks for the specific method developers must use within the Actionable Relationship Center (ARC) configuration to define the visual display and user interface of a customized node. ",
+
+        "summary": "Actionable Relationship Center (ARC) uses FlexCards as the standard component to display node information and actions. The correct method is to **Reference the FlexCard in the Display properties of the custom ARC relationship graph**.",
+
+        "explanationImage": ['Set1/Images/Question60.png','Set1/Images/Question60.png'],
+
+        "references": [
+
+            {
+
+                "text": "ARC Container Release Notes",
+
+                "url": "https://help.salesforce.com/s/articleView?id=release-notes.rn_fsc_arc_container.htm&release=242&type=5"
+
+            }
+
+        ]
+
+    }
+   
+
+]; 
+    
+    let shuffledExamData; 
+    let currentQuestionIndex = 0; 
+    let userAnswers; 
+    let finalResults; // Store final grading results
+    const TIME_LIMIT = 3600; 
+    let timeLeft = TIME_LIMIT; 
+    let timerInterval; 
+    const PASSING_PERCENTAGE = 90; 
+
+    // DOM Elements
+    const instructionScreen = document.getElementById('instruction-screen');
+    const examScreen = document.getElementById('exam-screen');
+    const preSubmitScreen = document.getElementById('pre-submit-screen');
+    const resultScreen = document.getElementById('result-screen');
+    
+    // NEW/RENAMED Elements
+    const reviewSummaryTableScreen = document.getElementById('review-mode-screen'); // Used for the Review Table
+    const detailedQReviewScreen = document.getElementById('detailed-q-review-screen'); // Used for Question-by-Question Review
+    const detailedReviewQuestionContent = document.getElementById('detailed-review-question-content');
+
+    const questionPanel = document.getElementById('question-panel');
+    const timerDisplay = document.getElementById('timer');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn-footer');
+    const submitBtn = document.getElementById('submit-btn-quiz');
+    const markBtn = document.getElementById('mark-btn');
+    const trackerContainer = document.getElementById('question-tracker');
+    const startExamBtn = document.getElementById('start-exam-btn');
+    const preSubmitReviewBtn = document.getElementById('pre-submit-review-btn');
+    
+    // Detailed Review Navigation
+    const prevBtnDetailed = document.getElementById('prev-btn-detailed');
+    const nextBtnDetailed = document.getElementById('next-btn-detailed');
+    const backToSummaryTableBtn = document.getElementById('back-to-summary-table-btn');
+
+    const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+    const toggleContainer = document.getElementById('toggle-container');
+
+
+    // SIDEBAR ELEMENTS
+    const sidebar = document.getElementById('sidebar');
+    let isSidebarCollapsed = true;
+
+
+    // --- Utility Functions --- 
+    function shuffleArray(array) { 
+        for (let i = array.length - 1; i > 0; i--) { 
+            const j = Math.floor(Math.random() * (i + 1)); 
+            [array[i], array[j]] = [array[j], array[i]]; 
+        }
+        return array;
+    }
+
+    function getOptionLetter(index) {
+        return String.fromCharCode(65 + index); // A=65, B=66, etc.
+    }
+
+    function checkAnswerStatus(index) {
+        const q = shuffledExamData[index];
+        const userIds = userAnswers[index].answers;
+        const correctQty = q.select;
+
+        if (userIds.length === 0) return 'not_attempted';
+        if (userIds.length === correctQty) return 'match_qty';
+        return 'mismatch_qty';
+    }
+
+    // --- Screen Management ---
+    function hideAllScreens() {
+        instructionScreen.classList.add('hidden');
+        examScreen.classList.add('hidden');
+        preSubmitScreen.classList.add('hidden');
+        reviewSummaryTableScreen.classList.add('hidden');
+        detailedQReviewScreen.classList.add('hidden');
+        resultScreen.classList.add('hidden');
+        // Hide the toggle button when not in exam mode
+        toggleContainer.classList.add('hidden');
+    }
+
+    // --- Timer Functions ---
+    function startTimer() {
+        clearInterval(timerInterval); // Clear any existing timer
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                alert("Time's up! Submitting exam automatically.");
+                submitExam();
+            }
+        }, 1000);
+    }
+
+    // --- Sidebar Toggle Logic ---
+    function handleSidebarToggle() {
+        isSidebarCollapsed = !isSidebarCollapsed;
+        sidebar.classList.toggle('collapsed', isSidebarCollapsed);
+        
+        setTimeout(() => {
+            const arrowSpan = document.getElementById('sidebar-arrow');
+            if (isSidebarCollapsed) {
+                arrowSpan.textContent = '»'; 
+                // keep toggle visible at left on small screens
+                toggleContainer.style.left = (window.innerWidth <= 900) ? '8px' : '0';
+            } else {
+                arrowSpan.textContent = '«'; 
+                // avoid moving toggle off-screen on small devices
+                toggleContainer.style.left = (window.innerWidth <= 900) ? '8px' : (sidebar.offsetWidth + 'px'); 
+            }
+        }, 300); 
+    }
+    
+    // --- Exam Flow Functions ---
+    function startExam() {
+        //const limitedData = originalExamData.slice(0, 2); 
+        const limitedData = originalExamData;
+        shuffledExamData = shuffleArray( 
+            limitedData.map(q => ({ 
+                ...q,
+                shuffledOptions: shuffleArray( q.options.map(o => ({ ...o })) ) 
+            })) 
+        );
+
+        userAnswers = new Array(shuffledExamData.length)
+            .fill(null)
+            .map(() => ({ answers: [], marked: false }));
+        
+        hideAllScreens();
+        examScreen.classList.remove('hidden');
+        toggleContainer.classList.remove('hidden'); 
+        currentQuestionIndex = 0;
+        renderQuestion(currentQuestionIndex);
+        renderTracker();
+        startTimer();
+        
+        document.getElementById('sidebar-arrow').textContent = '»'; 
+        // Keep toggle positioned sensibly on small screens
+        toggleContainer.style.left = (window.innerWidth <= 900) ? '8px' : (sidebar.offsetWidth + 'px'); 
+    }
+
+    // --- Live Exam Rendering ---
+    function renderQuestion(index) {
+        const q = shuffledExamData[index];
+        const type = q.select === 1 ? 'radio' : 'checkbox';
+        const inputName = `q-${index}`;
+        const selectedAnswers = userAnswers[index].answers;
+        const isMarked = userAnswers[index].marked;
+
+        if (isMarked) {
+            markBtn.textContent = '🏳️ Unmark for Review';
+            markBtn.classList.add('unmark');
+        } else {
+            markBtn.textContent = '🚩 Mark for Review';
+            markBtn.classList.remove('unmark');
+        }
+        
+        const optionsToRender = q.shuffledOptions;
+        let optionsHtml = optionsToRender.map((opt, optIndex) => {
+            const optionLetter = getOptionLetter(optIndex);
+            return `
+                <li class="option-item">
+                <label>
+                    <input type="${type}" name="${inputName}" value="${opt.optionId}"
+                        ${selectedAnswers.includes(opt.optionId) ? 'checked' : ''} data-option-id="${opt.optionId}">
+                    <span class="option-label">${optionLetter}.</span> ${opt.option}
+                </label>
+                </li>
+            `;
+        }).join('');
+
+        const questionImagesHtml = q.image && q.image.length > 0 
+    ? `<div class="image-list-container">
+        ${q.image.map(src => `<img src="${src}" class="exam-img" alt="Question Visual">`).join('')}
+       </div>`
+    : '';
+
+        const questionHtml = `
+            <div class="question-header">
+                <div class="question-info">
+                    <p><strong>Question ${index + 1} of ${shuffledExamData.length}</strong> 
+                    (${q.select === 1 ? 'Single Select' : `Multi Select: Choose ${q.select}`})</p>
+                </div>
+            </div>
+            
+            <p class="question-text">${q.question}</p>
+            ${questionImagesHtml}
+            <ul class="options-list" id="options-container">
+                ${optionsHtml}
+            </ul>
+        `;
+        questionPanel.innerHTML = questionHtml;
+        updateNavigationButtons(index, 'exam');
+        renderTracker(); 
+
+        let flagStatusElement = document.getElementById('flag-status-absolute');
+        if (!flagStatusElement) {
+            flagStatusElement = document.createElement('span');
+            flagStatusElement.id = 'flag-status-absolute';
+            document.getElementById('question-panel').appendChild(flagStatusElement);
+        }
+        flagStatusElement.textContent = '🚩';
+        flagStatusElement.style.display = isMarked ? 'block' : 'none';
+
+        questionPanel.onchange = (e) => handleOptionChange(e, index);
+    }
+
+    function handleOptionChange(e, qIndex) {
+        if (e.target.tagName === 'INPUT') {
+            const optionId = e.target.value;
+            const q = shuffledExamData[qIndex];
+
+            if (q.select === 1) {
+                userAnswers[qIndex].answers = [optionId];
+            } else { 
+                if (e.target.checked) {
+                    if (!userAnswers[qIndex].answers.includes(optionId)) {
+                        userAnswers[qIndex].answers.push(optionId);
+                    }
+                } else {
+                    userAnswers[qIndex].answers = userAnswers[qIndex].answers.filter(id => id !== optionId);
+                }
+            }
+            renderQuestion(qIndex); 
+        }
+    }
+
+    function updateNavigationButtons(index, mode) {
+        const total = shuffledExamData.length;
+        const isLast = index === total - 1;
+        const isFirst = index === 0;
+
+        const prevExam = document.getElementById('prev-btn');
+        const nextExam = document.getElementById('next-btn-footer');
+        const submitQuiz = document.getElementById('submit-btn-quiz');
+
+        if (mode === 'exam') {
+            prevExam.disabled = isFirst;
+            if (isLast) {
+                nextExam.classList.add('hidden');
+                submitQuiz.classList.remove('hidden');
+                submitQuiz.textContent = 'Submit';
+            } else {
+                nextExam.classList.remove('hidden');
+                submitQuiz.classList.add('hidden');
+            }
+        } else if (mode === 'detailed') {
+                prevBtnDetailed.disabled = isFirst;
+                nextBtnDetailed.disabled = isLast;
+        }
+    }
+
+    function renderTracker() {
+        trackerContainer.innerHTML = '';
+        shuffledExamData.forEach((q, i) => {
+            const item = document.createElement('div');
+            item.classList.add('tracker-item');
+            item.textContent = i + 1;
+            item.dataset.index = i;
+            
+            const status = checkAnswerStatus(i);
+            const isMarked = userAnswers[i].marked;
+
+            if (status === 'match_qty') {
+                item.classList.add('match-qty-q');
+            } else if (status === 'mismatch_qty') {
+                item.classList.add('mismatch-qty-q');
+            } else {
+                item.classList.add('default-q');
+            }
+
+            if (isMarked) {
+                item.classList.add('marked-q');
+            }
+
+            if (i === currentQuestionIndex) {
+                item.classList.add('current-q');
+            }
+            
+            item.addEventListener('click', () => {
+                currentQuestionIndex = i;
+                renderQuestion(currentQuestionIndex);
+            });
+
+            trackerContainer.appendChild(item);
+        });
+    }
+    
+    // --- Pre-Submit Review Screen --- 
+    function showPreSubmitReview() {
+        clearInterval(timerInterval);
+        hideAllScreens();
+        preSubmitScreen.classList.remove('hidden');
+
+        let attemptedCount = 0;
+        let markedCount = 0;
+
+        let tableHtml = `
+            <h2>Pre-Submission Summary</h2>
+            <hr>
+            <p><strong>Time Remaining:</strong> <span id="final-time">${timerDisplay.textContent}</span></p>
+            <p>Please review the status of your questions before the final submission.</p>
+            <table class="review-table">
+                <thead>
+                    <tr>
+                        <th>Q No.</th>
+                        <th>Status</th>
+                        <th>Mark for Review</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        shuffledExamData.forEach((q, index) => {
+            const status = checkAnswerStatus(index);
+            const isMarked = userAnswers[index].marked;
+            const isAnswered = status !== 'not_attempted';
+
+            if (isAnswered) attemptedCount++;
+            if (isMarked) markedCount++;
+
+            let statusText = '';
+            if (status === 'match_qty') statusText = '<span style="color:#2ecc71; font-weight: bold;">Answered (Quantity Match)</span>';
+            else if (status === 'mismatch_qty') statusText = '<span style="color:#e74c3c; font-weight: bold;">Answered (Quantity Mismatch)</span>';
+            else statusText = 'Not Attempted';
+
+            tableHtml += `
+                <tr>
+                    <td><a href="#" data-index="${index}" class="review-jump">${index + 1}</a></td>
+                    <td>${statusText}</td>
+                    <td>${isMarked ? '🚩 Marked' : '-'}</td>
+                    <td><a href="#" data-index="${index}" class="review-jump">Go to Question</a></td>
+                </tr>
+            `;
+        });
+
+        tableHtml += `
+                </tbody>
+            </table>
+            <hr>
+            <p><strong>Attempted Questions:</strong> ${attemptedCount} out of ${shuffledExamData.length}</p>
+            <p><strong>Marked for Review:</strong> ${markedCount}</p>
+            <p style="margin-top: 20px;">
+                <button id="final-submit-btn" class="brand-btn submit-btn">Final Submit</button>
+                <button id="resume-exam-btn" class="brand-btn secondary-btn">Resume Exam</button>
+            </p>
+        `;
+        preSubmitScreen.innerHTML = tableHtml;
+
+        document.getElementById('final-submit-btn').addEventListener('click', submitExam);
+        document.getElementById('resume-exam-btn').addEventListener('click', () => {
+            startTimer(); 
+            hideAllScreens();
+            examScreen.classList.remove('hidden');
+            toggleContainer.classList.remove('hidden');
+            renderQuestion(currentQuestionIndex);
+        });
+        document.querySelectorAll('.review-jump').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentQuestionIndex = parseInt(e.target.dataset.index);
+                startTimer();
+                hideAllScreens();
+                examScreen.classList.remove('hidden');
+                toggleContainer.classList.remove('hidden');
+                renderQuestion(currentQuestionIndex);
+            });
+        });
+    }
+
+
+    // --- Final Submission and Results --- 
+    function submitExam() {
+        clearInterval(timerInterval);
+        hideAllScreens();
+        resultScreen.classList.remove('hidden');
+
+        let score = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let notAttemptedCount = 0;
+        const totalQuestions = shuffledExamData.length;
+        finalResults = []; 
+
+        shuffledExamData.forEach((q, index) => {
+            const correctIds = q.options.filter(opt => opt.isCorrect).map(opt => opt.optionId);
+            const userIds = userAnswers[index].answers;
+            const isAttempted = userIds.length > 0;
+
+            const isCorrect = correctIds.length === userIds.length && correctIds.every(id => userIds.includes(id));
+
+            if (isCorrect) {
+                score++;
+                correctCount++;
+            } else if (isAttempted) {
+                incorrectCount++;
+            } else {
+                notAttemptedCount++;
+            }
+
+            finalResults.push({
+                index: index,
+                isCorrect: isCorrect,
+                isAttempted: isAttempted,
+                isMarked: userAnswers[index].marked
+            });
+        });
+
+        const finalScorePercent = (score / totalQuestions * 100).toFixed(2);
+        const isPassed = finalScorePercent >= PASSING_PERCENTAGE;
+        const scoreColor = isPassed ? '#28a745' : '#e74c3c';
+        const finalResultText = isPassed ? 'PASSED' : 'FAILED';
+
+        const resultHtml = `
+            <h2>Exam Results</h2>
+            <hr>
+            <table class="result-summary-table" style="margin: 20px auto; width: 50%; text-align: left;">
+                <tr><td style="font-weight: bold;">Status:</td><td style="background-color: ${scoreColor}; color: white; font-weight: bold;">${finalResultText}</td></tr>
+                <tr><td style="font-weight: bold;">Score:</td><td>${score} out of ${totalQuestions}</td></tr>
+                <tr><td style="font-weight: bold;">Percentage:</td><td style="font-weight: bold; color: ${scoreColor};">${finalScorePercent}%</td></tr>
+                <tr><td>Correct Answers:</td><td>${correctCount}</td></tr>
+                <tr><td>Incorrect Answers:</td><td>${incorrectCount}</td></tr>
+                <tr><td>Not Attempted:</td><td>${notAttemptedCount}</td></tr>
+            </table>
+            <p style="margin-top: 30px;">
+                <button id="view-review-btn" class="brand-btn secondary-btn" style="background-color: #9b59b6;">Solutions</button>
+            </p>
+        `;
+        resultScreen.innerHTML = resultHtml;
+
+        document.getElementById('view-review-btn').addEventListener('click', renderDetailedReviewSummaryTable);
+    }
+
+    // --- Detailed Review Summary Table Screen (The second screenshot table) ---
+    function renderDetailedReviewSummaryTable() {
+        hideAllScreens();
+        reviewSummaryTableScreen.classList.remove('hidden');
+        
+        // Ensure toggle is hidden on review screens
+        toggleContainer.classList.add('hidden');
+        
+        let tableHtml = `
+            <h2>Detailed Review Summary</h2>
+            <hr>
+            <p>Click on a question number or 'View Details' to view the detailed answer and explanation.</p>
+            <table class="review-table">
+                <thead>
+                    <tr>
+                        <th>Q No.</th>
+                        <th>Final Status</th>
+                        <th>Attempted</th>
+                        <th>Review Flag</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        finalResults.forEach((result) => {
+            const qIndex = result.index;
+            let statusText = '';
+            let statusColor = '';
+            
+            if (result.isCorrect) {
+                statusText = 'Correct';
+                statusColor = '#2ecc71';
+            } else if (result.isAttempted) {
+                statusText = 'Incorrect';
+                statusColor = '#e74c3c';
+            } else {
+                statusText = 'Not Attempted';
+                statusColor = '#95a5a6';
+            }
+
+            tableHtml += `
+                <tr>
+                    <td><a href="#" data-index="${qIndex}" class="detailed-review-jump">${qIndex + 1}</a></td>
+                    <td><span style="color:${statusColor}; font-weight: bold;">${statusText}</span></td>
+                    <td>${result.isAttempted ? 'Yes' : 'No'}</td>
+                    <td>${result.isMarked ? '🚩 Marked' : '-'}</td>
+                    <td><a href="#" data-index="${qIndex}" class="detailed-review-jump">View Details</a></td>
+                </tr>
+            `;
+        });
+
+        tableHtml += `
+                </tbody>
+            </table>
+            <p style="margin-top: 20px;">
+                <button id="back-to-results-btn-final" class="brand-btn secondary-btn">Back to Score Summary</button>
+            </p>
+        `;
+        reviewSummaryTableScreen.innerHTML = tableHtml;
+
+        // FIX: Attach the event listener to the table links after rendering the HTML
+        document.querySelectorAll('.detailed-review-jump').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentQuestionIndex = parseInt(e.target.dataset.index);
+                renderReviewQuestion(currentQuestionIndex); 
+            });
+        });
+        document.getElementById('back-to-results-btn-final').addEventListener('click', submitExam);
+    }
+
+    // --- Detailed Question-by-Question Review Rendering (The last screenshot page) ---
+    function renderReviewQuestion(index) {
+        hideAllScreens();
+detailedQReviewScreen.classList.remove('hidden');
+
+const q = shuffledExamData[index];
+const userIds = userAnswers[index].answers;
+const isMarked = userAnswers[index].marked;
+
+const explanationOptions = q.shuffledOptions.map((opt, i) => ({
+    ...opt,
+    letter: getOptionLetter(i)
+}));
+
+const correctOptions = explanationOptions.filter(o => o.isCorrect);
+const incorrectOptions = explanationOptions.filter(o => !o.isCorrect);
+
+const correctIds = q.options.filter(o => o.isCorrect).map(o => o.optionId);
+const isAttempted = userIds.length > 0;
+const isCorrect =
+    correctIds.length === userIds.length &&
+    correctIds.every(id => userIds.includes(id));
+
+const finalResultText = isAttempted
+    ? isCorrect ? 'CORRECT' : 'INCORRECT'
+    : 'NOT ATTEMPTED';
+
+const resultColor = isCorrect ? '#28a745' : '#dc3545';
+
+/* ========= OPTIONS LIST WITH ICONS ========= */
+const optionsHtml = explanationOptions.map(o => {
+    const isUserSelected = userIds.includes(o.optionId);
+
+    let cls = '';
+    let symbolHtml = '';
+    const CHECK_MARK = '&#10003;'; // ✓
+    const X_MARK = '&#10005;';   // ✕
+
+    // Correct option → green check
+    if (o.isCorrect) {
+        cls = 'correct-answer-rev';
+        symbolHtml = `<span class="symbol-correct">${CHECK_MARK}</span>`;
+    }
+    
+
+    // User selected wrong option → red X
+        if (isUserSelected && !o.isCorrect) {
+        cls = 'incorrect-user-selected';
+        symbolHtml = `<span class="symbol-incorrect">${X_MARK} (Your Selection)</span>`;
+    }
+    if (isUserSelected && o.isCorrect) {
+        cls = 'correct-answer-rev';
+        symbolHtml = `<span class="symbol-correct">${CHECK_MARK} (Correct Answer & Your Selection)</span>`;
+    }
+
+
+    return `
+        <li class="option-item ${cls}">
+            <label>
+                <input type="${q.type === 'single' ? 'radio' : 'checkbox'}"
+                        disabled
+                        ${isUserSelected || o.isCorrect ? 'checked' : ''}>
+                <strong>${o.letter}.</strong> ${o.option}
+                ${symbolHtml}
+            </label>
+        </li>
+    `;
+}).join('');
+
+const expImagesHtml = q.explanationImage && q.explanationImage.length > 0
+    ? `<div class="reference-links-header">Explanation Images:</div>
+       <div class="image-list-container">
+        ${q.explanationImage.map(src => `<img src="${src}" class="exam-img" alt="Explanation Diagram">`).join('')}
+       </div>`
+    : '';
+
+/* ========= EXPLANATION CONTENT ========= */
+const explanationHtml = `
+    <div class="problem-statement-brief">
+        Problem Statement Briefly:
+    </div>
+    <p>${q.problem_statement}</p>
+
+    <div class="correct-answers-box">
+        <h4>Correct Answers:</h4>
+        ${correctOptions.map(o =>
+            `<p><strong>Option ${o.letter}:</strong> ${o.option}</p>`
+        ).join('')}
+        <p>${q.summary}</p>
+    </div>
+
+    ${correctOptions.map(o => `
+        <p class="correct-option-detail">
+            <strong>${o.letter}. (Correct):</strong> ${o.details}
+        </p>
+    `).join('')}
+
+    <div class="incorrect-options-header">Incorrect Options:</div>
+    ${incorrectOptions.map(o => `
+        <p class="incorrect-option-detail">
+            <strong>${o.letter}. (Incorrect):</strong> ${o.details}
+        </p>
+    `).join('')}
+    ${expImagesHtml}
+
+    ${q.references?.length ? `
+        <div class="reference-links-header">Reference Links:</div>
+        <ul class="reference-links-list">
+            ${q.references.map(r =>
+                `<li><a href="${r.url}" target="_blank">${r.text}</a></li>`
+            ).join('')}
+        </ul>
+    ` : ''}
+`;
+
+/* ========= FINAL HTML ========= */
+detailedReviewQuestionContent.innerHTML = `
+    <h3>Question ${index + 1} of ${shuffledExamData.length} ${isMarked ? '🚩' : ''}</h3>
+    <p class="question-text">${q.question}</p>
+
+    <p><strong>Your Attempt:</strong> ${isAttempted ? 'Yes' : 'No'}</p>
+    <p style="font-weight:bold; color:${resultColor};">
+        Final Result: ${finalResultText}
+    </p>
+
+    <ul class="options-list">${optionsHtml}</ul>
+
+    <button id="explanation-toggle-btn"
+            class="brand-btn secondary-btn"
+            style="margin-top:20px;">
+        Show Explanation
+    </button>
+
+    <div id="explanation-panel"
+            class="explanation-panel hidden">
+        ${explanationHtml}
+    </div>
+`;
+
+/* ========= TOGGLE LOGIC ========= */
+const toggleBtn = document.getElementById('explanation-toggle-btn');
+const explanationPanel = document.getElementById('explanation-panel');
+
+if (toggleBtn && explanationPanel) {
+    toggleBtn.addEventListener('click', () => {
+        const isHidden = explanationPanel.classList.contains('hidden');
+        explanationPanel.classList.toggle('hidden');
+        toggleBtn.textContent = isHidden ? 'Hide Explanation' : 'Show Explanation';
+    });
+}
+
+updateNavigationButtons(index, 'detailed');
+        // Add event listeners for explanation toggles
+        document.querySelectorAll('.explanation-toggle-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const targetId = e.target.dataset.target;
+                const explanationDiv = document.getElementById(targetId);
+                if (explanationDiv) {
+                    explanationDiv.classList.toggle('hidden');
+                    e.target.textContent = explanationDiv.classList.contains('hidden') ? 'Show Explanation' : 'Hide Explanation';
+                }
+            });
+        });
+    }
+    
+    // --- Event Listeners ---
+
+    // Exam Navigation
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion(currentQuestionIndex);
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < shuffledExamData.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion(currentQuestionIndex);
+        }
+    });
+    
+    markBtn.addEventListener('click', () => {
+        userAnswers[currentQuestionIndex].marked = !userAnswers[currentQuestionIndex].marked;
+        renderQuestion(currentQuestionIndex); 
+    });
+
+    startExamBtn.addEventListener('click', startExam);
+    preSubmitReviewBtn.addEventListener('click', showPreSubmitReview);
+    submitBtn.addEventListener('click', showPreSubmitReview);
+
+    // Detailed Review Mode Navigation
+    prevBtnDetailed.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderReviewQuestion(currentQuestionIndex);
+        }
+    });
+
+    nextBtnDetailed.addEventListener('click', () => {
+        if (currentQuestionIndex < shuffledExamData.length - 1) {
+            currentQuestionIndex++;
+            renderReviewQuestion(currentQuestionIndex);
+        }
+    });
+    
+    // Go back to the Summary Table from the Detailed Question View
+    backToSummaryTableBtn.addEventListener('click', renderDetailedReviewSummaryTable); 
+    
+    // Final listener for the main toggle button 
+    toggleSidebarBtn.addEventListener('click', handleSidebarToggle);
+</script>
+
+</body>
+</html>
