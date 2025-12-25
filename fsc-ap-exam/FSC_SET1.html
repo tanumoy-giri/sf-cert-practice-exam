@@ -501,6 +501,46 @@
     #toggle-container { position: absolute; left: 12px; top: 68px; z-index: 1200; }
     .toggle-btn { padding: 8px 10px; }
     input[type="radio"], input[type="checkbox"] { width: 18px; height: 18px; }
+    /* Pin question tracker under the header on small screens */
+    .question-tracker {
+        position: fixed;
+        top: calc(56px + 8px); /* header height + small gap */
+        left: 12px;
+        right: 12px;
+        background: #ecf0f1;
+        padding: 8px 10px;
+        border-radius: 6px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+        z-index: 1100;
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* Make sure main content is not hidden under the pinned tracker */
+    .question-panel { padding-top: 120px; }
+
+    /* Fix footer/buttons so they are accessible and well positioned */
+    .exam-main-area > .footer {
+        position: fixed;
+        bottom: 12px;
+        left: 12px;
+        right: 12px;
+        width: calc(100% - 24px);
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        padding: 12px;
+        z-index: 1200;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+    .footer .action-buttons { flex: 1 1 auto; }
+    .footer .navigation-buttons { flex: 0 0 auto; display:flex; gap:8px; }
+    .navigation-buttons .brand-btn, .action-buttons .brand-btn { padding: 10px 14px; min-width: 84px; }
+    /* Ensure content above footer isn't hidden */
+    .question-panel { padding-bottom: 140px; }
 }
 @media (max-width: 480px) {
     .header { flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px; }
