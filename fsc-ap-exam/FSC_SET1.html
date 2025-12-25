@@ -1,4 +1,16 @@
 <!DOCTYPE html>
+<!--
+Local server note: If images do not appear when opening this file via file:// on
+mobile devices, run a simple HTTP server from the folder containing this file
+and open the page via http://. Example (PowerShell / Command Prompt):
+
+    python -m http.server 8000
+
+Then open on the device/emulator using your PC IP, e.g.
+
+    http://192.168.1.10:8000/set1.html
+
+-->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -14,7 +26,7 @@
     }
     html, body {
         height: 100%;
-        overflow: hidden; /* prevent outer page scrollbar; use internal scrolling */
+        overflow: auto; /* allow page scrolling on small devices */
     }
     
     /* MAIN LAYOUT WRAPPER - Centered container, non-fixed header */
@@ -24,7 +36,8 @@
         background: #ffffff;
         border-radius: 8px;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        height: calc(100vh - 40px); /* ensure wrapper fills viewport height */
+        min-height: calc(100vh - 40px); /* fill viewport without forcing overflow */
+        height: auto;
         position: relative; /* CRITICAL: Positioning context for the absolute toggle button */
         display: flex; /* Make the wrapper a flex container */
         flex-direction: column; /* Stack children vertically */
@@ -88,7 +101,7 @@
         padding: 20px 0 20px 20px;
         border-right: 1px solid #ddd;
         background-color: #ecf0f1; 
-        transition: width 0.3s, min-width 0.3s, padding-left 0.3s;
+        transition: width 0.3s, min-width 0.3s, padding-left 0.3s, transform 0.25s;
         overflow: hidden; 
     }
     
@@ -476,82 +489,137 @@
         font-weight: bold;
         font-size: 1.2em;
     }
+    .image-list-container {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin: 15px 0;
+        justify-content: flex-start;
+        align-items: flex-start;
+    }
+
+    .exam-img {
+        width: calc(30% - 10px);
+        max-width: 30%;
+        height: auto;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .exam-img { display: block; object-fit: contain; }
+
+    .explanation-panel .exam-img {
+        border-left: 5px solid #3498db; /* Blue accent for explanation images */
+    }
+
+    /* Responsive: stack images on narrow viewports */
+    @media (max-width: 600px) {
+        .image-list-container {
+            flex-direction: column;
+        }
+        .exam-img {
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+
+    /* LAYOUT ADJUSTMENTS FOR TABLETS / SMALL DESKTOPS */
+    @media (max-width: 900px) {
+        .main-layout-wrapper {
+            margin: 10px;
+            border-radius: 6px;
+        }
+
+        .exam-layout {
+            flex-direction: column; /* Stack sidebar & main on narrow screens */
+            gap: 0;
+        }
+
+        .sidebar {
+            width: 100%;
+            min-width: 0;
+            border-right: none;
+            padding: 12px 14px;
+        }
+
+        /* Hide collapsed sidebar on small screens to free space */
+        .sidebar.collapsed {
+            display: none;
+        }
+
+        #toggle-container {
+            position: fixed;
+            top: 72px;
+            left: 8px;
+        }
+
+        .question-panel {
+            padding: 16px;
+            padding-bottom: 100px; /* keep footer visible */
+        }
+
+        /* make images more visible on mid-size phones/tablets */
+        .image-list-container { gap: 10px; }
+        .exam-img { width: calc(48% - 8px); max-width: 48%; }
+
+        .question-text { font-size: 1em; }
+
+        .exam-main-area > .footer { padding: 10px; }
+
+        .navigation-buttons { flex-wrap: wrap; gap: 8px; }
+    }
+
+    /* VERY SMALL PHONES */
+    @media (max-width: 420px) {
+        .header h3 { font-size: 1.05rem; }
+        .timer-display { font-size: 1rem; }
+        .question-panel { padding: 12px; }
+        .question-text { font-size: 0.98rem; }
+        .tracker-item { width: 28px; height: 28px; line-height: 28px; }
+    }
+
+    /* ===================================================================
+       FORCE IMAGE VISIBILITY & RESPONSIVE THUMBNAILS
+       Ensures images show on mobile and provide sensible sizes across
+       breakpoints. These rules are intentionally explicit to override
+       conflicting styles in device-specific media queries.
+       =================================================================== */
+    .image-list-container {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+        justify-content: flex-start !important;
+        align-items: flex-start !important;
+    }
+
+    .exam-img {
+        display: block !important;
+        object-fit: contain !important;
+        width: 100% !important;
+        max-width: 280px !important;
+        height: auto !important;
+        border: 1px solid #ddd !important;
+        border-radius: 5px !important;
+    }
+
+    /* Two per row on mid-size screens (tablets/large phones) */
+    @media (min-width: 520px) and (max-width: 900px) {
+        .exam-img { width: calc(48% - 6px) !important; max-width: 48% !important; }
+    }
+
+    /* Three per row on wider screens */
+    @media (min-width: 901px) {
+        .exam-img { width: calc(33.33% - 10px) !important; max-width: 33.33% !important; }
+    }
+
+    /* Full width on very small phones */
+    @media (max-width: 519px) {
+        .exam-img { width: 100% !important; max-width: 100% !important; }
+    }
     /* --- END NEW STYLES --- */
     
-/* Responsive adjustments for mobile screens */
-@media (max-width: 992px) {
-    .main-layout-wrapper { max-width: 100%; margin: 12px; height: calc(100vh - 24px); }
-    .header { padding: 12px 16px; }
-}
-@media (max-width: 768px) {
-    html, body { height: auto; overflow: auto; }
-    .main-layout-wrapper { height: auto; display: block; border-radius: 6px; }
-    .exam-layout { flex-direction: column; align-items: stretch; }
-    .sidebar { width: 100%; min-width: 0; padding: 12px; order: 2; border-right: none; border-top: 1px solid #ddd; background-color: #f8f9fa; transition: max-height 0.25s ease; }
-    .sidebar.collapsed { display: none; height: 0; padding: 0; border: none; }
-    .exam-main-area { order: 1; padding: 12px; }
-    #instruction-screen, .review-screen-content, #exam-screen { height: auto; overflow: auto; padding: 16px; }
-    .header h3 { font-size: 1.1em; }
-    .timer-display { font-size: 1em; }
-    .question-tracker { gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; padding-bottom:6px; }
-    .tracker-item { display: inline-block; flex: 0 0 auto; width: 34px; height: 34px; line-height:34px; font-size: 0.85em; margin-right:6px; }
-    .options-list .option-item { font-size: 0.98em; padding: 10px; }
-    .footer { flex-wrap: wrap; gap: 8px; align-items:center; }
-    #toggle-container.hidden { display: block !important; }
-    #toggle-container { position: absolute; left: 12px; top: 68px; z-index: 1200; }
-    .toggle-btn { padding: 8px 10px; }
-    input[type="radio"], input[type="checkbox"] { width: 18px; height: 18px; }
-    /* Pin question tracker under the header on small screens */
-    .question-tracker {
-        position: fixed;
-        top: calc(56px + 8px); /* header height + small gap */
-        left: 12px;
-        right: 12px;
-        background: #ecf0f1;
-        padding: 8px 10px;
-        border-radius: 6px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.06);
-        z-index: 1100;
-        display: flex;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-    /* Make sure main content is not hidden under the pinned tracker */
-    .question-panel { padding-top: 120px; }
-
-    /* Fix footer/buttons so they are accessible and well positioned */
-    .exam-main-area > .footer {
-        position: fixed;
-        bottom: 12px;
-        left: 12px;
-        right: 12px;
-        width: calc(100% - 24px);
-        border-radius: 8px;
-        background: #ffffff;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-        padding: 12px;
-        z-index: 1200;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-    }
-    .footer .action-buttons { flex: 1 1 auto; }
-    .footer .navigation-buttons { flex: 0 0 auto; display:flex; gap:8px; }
-    .navigation-buttons .brand-btn, .action-buttons .brand-btn { padding: 10px 14px; min-width: 84px; }
-    /* Ensure content above footer isn't hidden */
-    .question-panel { padding-bottom: 140px; }
-}
-@media (max-width: 480px) {
-    .header { flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px; }
-    .header h3 { font-size: 1em; }
-    .timer-display { align-self: flex-end; font-size: 0.95em; }
-    .question-text { font-size: 0.98em; }
-    .problem-statement-brief { font-size: 1.05em; }
-    .correct-answers-box, .explanation-panel { padding: 10px; }
-    .question-tracker { gap: 6px; }
-    .tracker-item { width: 30px; height: 30px; line-height:30px; font-size:0.82em; }
-}
 </style>
 </head>
 <body>
@@ -559,7 +627,7 @@
 <div class="container main-layout-wrapper">
     
     <div class="header">
-        <h3>FSC Consultant Certification Practice (Set 1)</h3>
+        <h3>FSC Consultant Certification Practice  (Set 3)</h3>
         <div class="timer-display">Time Left: <span id="timer">60:00</span></div>
     </div>
 
@@ -635,9 +703,10 @@
 </div>
 
 <script>
-    // Data from the JSON file - LIMITED TO 2 QUESTIONS
+    
     const originalExamData = [
-    {
+   
+   {
         "type": "multi",
         "question": "A company wants to convert its Salesforce Financial Services Cloud implementation from using the individual account model to using person accounts. <br><br> Which three things should a consultant do to prepare for the conversion?",
         "select": 3,
@@ -2768,7 +2837,9 @@
             }
         ]
         }
-    ]; 
+   
+
+]; 
     
     let shuffledExamData; 
     let currentQuestionIndex = 0; 
@@ -2875,10 +2946,12 @@
             const arrowSpan = document.getElementById('sidebar-arrow');
             if (isSidebarCollapsed) {
                 arrowSpan.textContent = '»'; 
-                toggleContainer.style.left = '0';
+                // keep toggle visible at left on small screens
+                toggleContainer.style.left = (window.innerWidth <= 900) ? '8px' : '0';
             } else {
                 arrowSpan.textContent = '«'; 
-                toggleContainer.style.left = sidebar.offsetWidth + 'px'; 
+                // avoid moving toggle off-screen on small devices
+                toggleContainer.style.left = (window.innerWidth <= 900) ? '8px' : (sidebar.offsetWidth + 'px'); 
             }
         }, 300); 
     }
@@ -2907,7 +2980,8 @@
         startTimer();
         
         document.getElementById('sidebar-arrow').textContent = '»'; 
-        toggleContainer.style.left = sidebar.offsetWidth + 'px'; 
+        // Keep toggle positioned sensibly on small screens
+        toggleContainer.style.left = (window.innerWidth <= 900) ? '8px' : (sidebar.offsetWidth + 'px'); 
     }
 
     // --- Live Exam Rendering ---
@@ -2940,6 +3014,12 @@
             `;
         }).join('');
 
+        const questionImagesHtml = q.image && q.image.length > 0 
+    ? `<div class="image-list-container">
+        ${q.image.map(src => `<img src="${src}" class="exam-img" alt="Question Visual">`).join('')}
+       </div>`
+    : '';
+
         const questionHtml = `
             <div class="question-header">
                 <div class="question-info">
@@ -2949,6 +3029,7 @@
             </div>
             
             <p class="question-text">${q.question}</p>
+            ${questionImagesHtml}
             <ul class="options-list" id="options-container">
                 ${optionsHtml}
             </ul>
@@ -3277,6 +3358,13 @@ const q = shuffledExamData[index];
 const userIds = userAnswers[index].answers;
 const isMarked = userAnswers[index].marked;
 
+// Render question images (if any) for the detailed review view
+const questionImagesHtml = q.image && q.image.length > 0
+    ? `<div class="image-list-container">
+        ${q.image.map(src => `<img src="${src}" class="exam-img" alt="Question Visual">`).join('')}
+       </div>`
+    : '';
+
 const explanationOptions = q.shuffledOptions.map((opt, i) => ({
     ...opt,
     letter: getOptionLetter(i)
@@ -3337,6 +3425,13 @@ const optionsHtml = explanationOptions.map(o => {
     `;
 }).join('');
 
+const expImagesHtml = q.explanationImage && q.explanationImage.length > 0
+    ? `<div class="reference-links-header">Explanation Images:</div>
+       <div class="image-list-container">
+        ${q.explanationImage.map(src => `<img src="${src}" class="exam-img" alt="Explanation Diagram">`).join('')}
+       </div>`
+    : '';
+
 /* ========= EXPLANATION CONTENT ========= */
 const explanationHtml = `
     <div class="problem-statement-brief">
@@ -3364,6 +3459,7 @@ const explanationHtml = `
             <strong>${o.letter}. (Incorrect):</strong> ${o.details}
         </p>
     `).join('')}
+    ${expImagesHtml}
 
     ${q.references?.length ? `
         <div class="reference-links-header">Reference Links:</div>
@@ -3379,6 +3475,8 @@ const explanationHtml = `
 detailedReviewQuestionContent.innerHTML = `
     <h3>Question ${index + 1} of ${shuffledExamData.length} ${isMarked ? '🚩' : ''}</h3>
     <p class="question-text">${q.question}</p>
+
+    ${questionImagesHtml}
 
     <p><strong>Your Attempt:</strong> ${isAttempted ? 'Yes' : 'No'}</p>
     <p style="font-weight:bold; color:${resultColor};">
