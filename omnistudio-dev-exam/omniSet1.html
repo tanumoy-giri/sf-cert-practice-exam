@@ -1402,6 +1402,13 @@ const q = shuffledExamData[index];
 const userIds = userAnswers[index].answers;
 const isMarked = userAnswers[index].marked;
 
+// Render question images (if any) for the detailed review view
+const questionImagesHtml = q.image && q.image.length > 0
+    ? `<div class="image-list-container">
+        ${q.image.map(src => `<img src="${src}" class="exam-img" alt="Question Visual">`).join('')}
+       </div>`
+    : '';
+
 const explanationOptions = q.shuffledOptions.map((opt, i) => ({
     ...opt,
     letter: getOptionLetter(i)
@@ -1512,6 +1519,8 @@ const explanationHtml = `
 detailedReviewQuestionContent.innerHTML = `
     <h3>Question ${index + 1} of ${shuffledExamData.length} ${isMarked ? '🚩' : ''}</h3>
     <p class="question-text">${q.question}</p>
+
+    ${questionImagesHtml}
 
     <p><strong>Your Attempt:</strong> ${isAttempted ? 'Yes' : 'No'}</p>
     <p style="font-weight:bold; color:${resultColor};">
