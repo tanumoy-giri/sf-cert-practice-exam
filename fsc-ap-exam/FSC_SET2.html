@@ -1,0 +1,3468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FSC Consultant Practice Exam</title>
+<style>
+    /* BASE & PROFESSIONAL LAYOUT (Using structure closer to Untitled-7.html) */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        margin: 0;
+        padding: 0;
+        background-color: #f4f7f9; 
+    }
+    html, body {
+        height: 100%;
+        overflow: hidden; /* prevent outer page scrollbar; use internal scrolling */
+    }
+    
+    /* MAIN LAYOUT WRAPPER - Centered container, non-fixed header */
+    .main-layout-wrapper {
+        max-width: 1200px;
+        margin: 20px auto; /* Simple margin for non-fixed header */
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        height: calc(100vh - 40px); /* ensure wrapper fills viewport height */
+        position: relative; /* CRITICAL: Positioning context for the absolute toggle button */
+        display: flex; /* Make the wrapper a flex container */
+        flex-direction: column; /* Stack children vertically */
+    }
+
+    /* Make primary screens scroll internally when content overflows */
+    #instruction-screen,
+    .review-screen-content,
+    #exam-screen {
+        flex: 1 1 auto;
+        min-height: 0; /* allow children to shrink inside flex layout */
+        overflow: hidden; /* internal containers will provide scroll */
+    }
+
+    /* Ensure review and instruction content scroll internally */
+    #instruction-screen,
+    .review-screen-content {
+        overflow: auto;
+        padding: 30px;
+    }
+
+    /* Header (Exam Name and Timer) */
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 30px;
+        border-bottom: 1px solid #ddd;
+        background-color: #2c3e50; /* Brand Blue Header */
+        color: white;
+        border-top-left-radius: 8px;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        border-top-right-radius: 8px;
+    }
+    .header h3 {
+        margin: 0;
+        font-size: 1.5em;
+    }
+    .timer-display {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #1abc9c; 
+    }
+
+    /* EXAM LAYOUT (SIDEBAR + MAIN AREA) */
+    .exam-layout {
+        display: flex;
+        min-height: inherit;
+        flex-grow: 1;
+        align-items: stretch;
+        flex-wrap: nowrap; /* prevent sidebar collapse from wrapping layout */
+        min-height: 0; /* allow flex children to compute proper heights */
+    }
+
+    /* QUESTION NAVIGATOR (SIDEBAR) STYLES */
+    .sidebar {
+        width: 280px; 
+        min-width: 280px;
+        padding: 20px 0 20px 20px;
+        border-right: 1px solid #ddd;
+        background-color: #ecf0f1; 
+        transition: width 0.3s, min-width 0.3s, padding-left 0.3s;
+        overflow: hidden; 
+    }
+    
+    /* COLLAPSED STATE STYLES */
+    .sidebar.collapsed {
+        width: 0;
+        min-width: 0;
+        padding: 20px 0;
+        border-right: none;
+        overflow: hidden; /* ensure collapsed sidebar doesn't affect layout */
+        pointer-events: none; /* disable interactions when collapsed */
+    }
+
+    /* QUESTION GRID */
+    .question-tracker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+        padding-right: 20px; 
+    }
+    
+    .tracker-item {
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9em;
+        font-weight: 600;
+        background-color: #bdc3c7; 
+        color: #333;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+    }
+    
+    /* --- NEW STYLES FOR SCREENSHOT REPLICATION --- */
+    .explanation-hidden {
+        display: none;
+    }
+
+    .problem-statement-brief {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #e79727; /* Orange/Gold Color */
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+
+    .correct-answers-box {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 6px;
+        background-color: #e8f9f0; /* Light Green Background */
+        border-left: 5px solid #2ecc71; /* Green Bar */
+    }
+    
+    .correct-answers-box h4 {
+        color: #2ecc71;
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1.1em;
+    }
+
+    .correct-option-detail, .incorrect-option-detail {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        line-height: 1.4;
+    }
+    
+    .incorrect-options-header {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #e74c3c; /* Red Color */
+            margin-top: 25px;
+            margin-bottom: 15px;
+    }
+    
+    .reference-links-header {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2c3e50; /* Dark Blue Color */
+            margin-top: 25px;
+            margin-bottom: 10px;
+    }
+    
+    .reference-links-list {
+        list-style-type: disc;
+        padding-left: 20px;
+    }
+    /* --- END NEW STYLES FOR SCREENSHOT REPLICATION --- */
+
+    /* Tracker Color Logic Styles */
+    .current-q { background-color: #3498db !important; color: white !important; border-color: #3498db !important; transform: scale(1.1); }
+    .match-qty-q { background-color: #2ecc71; color: white; border-color: #2ecc71; } 
+    .mismatch-qty-q { background-color: #e74c3c; color: white; border-color: #e74c3c; } 
+    .marked-q { border: 2px solid #f39c12; } 
+    .default-q { background-color: white; color: #333; border: 1px solid #ccc; } 
+
+    /* MAIN EXAM AREA */
+    .exam-main-area {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative; 
+        min-width: 0; /* allow flex child to shrink properly inside flex container */
+        overflow: hidden; /* contain scrolling inside question panel */
+        min-height: 0; /* allow proper flex height calculations */
+    }
+    
+    /* TOGGLE CONTAINER (TOP LEFT - Relative to main-layout-wrapper) */
+    #toggle-container {
+        position: absolute;
+        top: 60px; /* Offset below the header */
+        left: 0; 
+        z-index: 100;
+        transition: left 0.3s;
+    }
+
+    .toggle-btn {
+        background-color: #34495e;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+        border-radius: 0 5px 5px 0; 
+        font-size: 1.2em;
+        line-height: 1;
+        transition: background-color 0.2s;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .toggle-btn:hover {
+        background-color: #2c3e50;
+    }
+
+
+    .question-panel {
+        flex: 1 1 auto; /* allow this area to grow and shrink properly */
+        padding: 25px 30px;
+        position: relative; 
+        overflow: auto; /* scroll content without pushing footer */
+        padding-bottom: 86px; /* leave space for sticky footer so content isn't hidden */
+    }
+
+    /* QUESTION & OPTIONS */
+    .question-header {
+        display: flex; 
+        justify-content: space-between;
+        align-items: flex-start; 
+        padding-bottom: 15px;
+        border-bottom: 1px dashed #ccc;
+        margin-bottom: 20px;
+    }
+    
+    .question-info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+    
+    /* Flag Status (Top Right) */
+    #flag-status-absolute {
+        color: #f39c12;
+        font-weight: bold;
+        font-size: 0.9em;
+        display: none; 
+        position: absolute; 
+        top: 30px; 
+        right: 30px; 
+        padding: 5px 10px;
+        background-color: #fff;
+        border-radius: 4px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .question-text {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #34495e;
+        margin-bottom: 20px;
+    }
+    .options-list {
+        list-style: none;
+        padding: 0;
+    }
+    .option-item {
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        transition: background-color 0.2s, border-color 0.2s;
+        cursor: pointer;
+    }
+    .option-item:hover {
+        background-color: #f8f8f8;
+        border-color: #3498db;
+    }
+    input[type="radio"], input[type="checkbox"] {
+        margin-right: 15px;
+        transform: scale(1.1);
+    }
+    
+    /* NAVIGATION FOOTER */
+    .footer {
+        padding: 15px 30px;
+        border-top: 1px solid #ddd;
+        background-color: #f8f9fa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0; /* Never shrink or move down */
+    }
+
+    /* Keep the exam footer pinned to the bottom of the main exam area */
+    .exam-main-area > .footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 50;
+        width: 100%;
+        left: 0;
+        right: 0;
+        box-sizing: border-box;
+    }
+
+    /* Ensure navigation buttons don't wrap or get clipped */
+    .navigation-buttons {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+
+    .navigation-buttons .brand-btn {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    /* BUTTON STYLES */
+    .brand-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-right: 10px;
+        color: #fff;
+        transition: background-color 0.2s;
+    }
+    .submit-btn {
+        background-color: #2ecc71; 
+    }
+    .secondary-btn {
+        background-color: #3498db; 
+        color: #fff;
+    }
+    #mark-btn {
+        background-color: #f39c12; /* Orange for Mark */
+    }
+    #mark-btn.unmark {
+        background-color: #e74c3c; /* Red for Unmark/Alert */
+    }
+    #pre-submit-review-btn { 
+        background-color: #9b59b6; 
+        color: white;
+        margin-left: 10px; 
+    }
+
+    .hidden { display: none; }
+    
+    /* Initial Screen */
+    #instruction-screen {
+        padding: 50px;
+        text-align: center;
+    }
+
+    /* REVIEW SCREEN CSS */
+    .review-screen-content {
+        padding: 30px;
+    }
+
+    .review-table {
+        border-collapse: collapse;
+        width: 80%;
+        margin: 20px auto;
+        text-align: left;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .review-table th, .review-table td {
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+    }
+
+    .review-table th {
+        background-color: #34495e;
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9em;
+    }
+
+    .review-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .review-table tr:hover {
+        background-color: #f1f1f1;
+    }
+    .review-table .detailed-review-jump {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .review-table .detailed-review-jump:hover {
+        text-decoration: underline;
+    }
+    
+    /* Review Mode specific styles for correctness indication */
+    .correct-answer-rev {
+        border-color: #2ecc71 !important;
+        background-color: #e8f9f0;
+    }
+    .incorrect-user-selected {
+        border-color: #e74c3c !important;
+        background-color: #f9ebeb;
+    }
+
+    /* Style for the Check and X symbols - USING ENTITIES NOW */
+    .symbol-correct {
+        margin-left: 10px; 
+        color: #2ecc71; 
+        font-weight: bold;
+        font-size: 1.2em; 
+    }
+
+    .symbol-incorrect {
+        margin-left: 10px; 
+        color: #e74c3c; 
+        font-weight: bold;
+        font-size: 1.2em; 
+    }
+    
+    /* --- NEW STYLES FOR EXPLANATION PANEL --- */
+    .explanation-panel {
+        margin-top: 30px;
+        padding: 20px;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        background-color: #fcfcfc;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    .exp-header {
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #34495e;
+        margin-top: 15px;
+        padding-bottom: 5px;
+        border-bottom: 1px dashed #ccc;
+    }
+    .explanation-content p {
+        margin-left: 0; /* Override margin from parent style */
+        padding-left: 0;
+        margin-bottom: 10px;
+        line-height: 1.4;
+    }
+    .references-list {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    .references-list li {
+        margin-bottom: 5px;
+    }
+
+    .symbol-correct {
+        margin-left: 10px;
+        color: #2ecc71;
+        font-weight: bold;
+        font-size: 1.2em;
+    }
+    
+    .symbol-incorrect {
+        margin-left: 10px;
+        color: #e74c3c;
+        font-weight: bold;
+        font-size: 1.2em;
+    }
+    /* --- END NEW STYLES --- */
+    
+</style>
+</head>
+<body>
+
+<div class="container main-layout-wrapper">
+    
+    <div class="header">
+        <h3>FSC Consultant Certification Practice  (Set 2)</h3>
+        <div class="timer-display">Time Left: <span id="timer">60:00</span></div>
+    </div>
+
+    <div id="instruction-screen">
+        <h2>★ FSC Practice Exam Instructions</h2>
+        <hr>
+        <p>This exam consists of <strong>50 questions</strong> for the sample.</p>
+        <p>You have 60 minutes to complete the test.</p>
+        <ul>
+            <li>**Red:** You selected less or more options than required.</li>
+            <li>**Green:** You selected the exact number of options required.</li>
+            <li>**Yellow Border (🚩):** Marked for Review.</li>
+            <li>**Blue:** Current Question.</li>
+        </ul>
+        <button id="start-exam-btn" class="brand-btn submit-btn">Start Exam</button>
+    </div>
+
+    <div id="toggle-container" class="hidden">
+        <button class="toggle-btn" id="toggle-sidebar"><span id="sidebar-arrow">«</span></button>
+    </div>
+
+    <div id="exam-screen" class="hidden exam-layout">
+        
+        <div class="sidebar collapsed" id="sidebar">
+            <h4>Question Navigator</h4>
+            <div id="question-tracker" class="question-tracker">
+                </div>
+            <div style="padding-right: 20px; margin-top: 20px;">
+                <button id="pre-submit-review-btn" class="brand-btn" style="width: 100%; margin-right: 0;">Review All</button>
+            </div>
+        </div>
+
+        <div class="exam-main-area" id="exam-main-area">
+            
+            <div id="question-panel" class="question-panel">
+                </div>
+            
+            <div class="footer">
+                <div class="action-buttons" style="display: flex; align-items: center;">
+                    <button id="mark-btn" class="brand-btn">🚩 Mark for Review</button>
+                </div>
+                <div class="navigation-buttons">
+                    <button id="prev-btn" class="brand-btn secondary-btn" disabled>Back</button>
+                    <button id="next-btn-footer" class="brand-btn secondary-btn">Next</button>
+                    <button id="submit-btn-quiz" class="brand-btn submit-btn hidden">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="pre-submit-screen" class="hidden review-screen-content">
+            </div>
+
+    <div id="review-mode-screen" class="hidden review-screen-content">
+        </div>
+
+    <div id="detailed-q-review-screen" class="hidden review-screen-content">
+            <div id="detailed-review-question-content"></div>
+            <div class="footer" style="margin: 20px 0 0 0; border-radius: 0 0 8px 8px;">
+                <div class="action-buttons">
+                <button id="back-to-summary-table-btn" class="brand-btn secondary-btn">Back to Summary</button>
+                </div>
+                <div class="navigation-buttons">
+                <button id="prev-btn-detailed" class="brand-btn secondary-btn" disabled>Previous</button>
+                <button id="next-btn-detailed" class="brand-btn secondary-btn">Next</button>
+            </div>
+            </div>
+    </div>
+
+    <div id="result-screen" class="hidden review-screen-content">
+        </div>
+
+</div>
+
+<script>
+    
+    const originalExamData = [
+{
+"type": "multi",
+"question": "A Bank of the Future customer calls the bank to update the address on their account. The call center agent handling the call needs to enter a new address into the system. The agent enters the new contact information using an OmniScript and then needs to generate a prefilled PDF with the new address that can be shared with the customer.<br><br>Which two OmniStudio tools should a consultant recommend to generate the prefilled PDF?",
+"select": 2,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Document Generation",
+        "isCorrect": true,
+        "details": "**Document Generation:** This OmniStudio tool is specifically designed to generate customer-facing documents such as PDFs. It supports prefilled templates using data collected from OmniScripts, making it the primary tool for generating and sharing prefilled PDFs."
+    },
+    {
+        "optionId": "2",
+        "option": "OmniStudio Action",
+        "isCorrect": false,
+        "details": "OmniStudio Action is a generic concept used to reference executable components, but it is not a dedicated tool for generating documents or PDFs."
+    },
+    {
+        "optionId": "3",
+        "option": "DataRaptor",
+        "isCorrect": true,
+        "details": "**DataRaptor:** DataRaptors are used to extract, transform, and map data collected in an OmniScript into the format required by Document Generation templates, enabling accurate prefilling of PDF documents."
+    },
+    {
+        "optionId": "4",
+        "option": "Calculation Procedure",
+        "isCorrect": false,
+        "details": "Calculation Procedures are used for performing mathematical and business logic calculations and are not involved in document or PDF generation."
+    },
+    {
+        "optionId": "5",
+        "option": "Integration Procedure",
+        "isCorrect": false,
+        "details": "Integration Procedures are used to orchestrate data from multiple systems or services. While powerful, they are not required for generating a prefilled PDF from OmniScript data."
+    }
+],
+"problem_statement": "The scenario requires capturing updated customer data in an OmniScript and then producing a customer-ready, prefilled PDF document using OmniStudio capabilities.",
+"summary": "To generate a prefilled PDF from data entered in an OmniScript, the consultant should use **Document Generation** to create the PDF and **DataRaptor** to extract and map the OmniScript data into the document template.",
+"references": [
+    {
+        "text": "OmniStudio Document Generation Overview",
+        "url": "https://help.salesforce.com/s/articleView?id=ind.doc_gen_foundation_document_generation_overview_389381.htm&type=5"
+    }
+]
+},
+
+{
+"type": "single",
+"question": "A financial institution has custom security and visibility rules where certain users need to see specific records even though they are not typically engaged in that Account. This includes legal and compliance members who must be engaged for particular deals.<br><br>Which Financial Services Cloud capability provides the ability to accommodate this request?",
+"select": 1,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Compliant Data Sharing",
+        "isCorrect": true,
+        "details": "**Compliant Data Sharing:** This FSC capability enables controlled, auditable access to specific records for users such as legal and compliance specialists. It allows users to be granted visibility on a deal-by-deal basis without requiring them to be part of the standard account team, ensuring regulatory compliance."
+    },
+    {
+        "optionId": "2",
+        "option": "Custom Sharing Rules",
+        "isCorrect": false,
+        "details": "Custom Sharing Rules are standard Salesforce features used for broad access control based on roles or groups. They are not designed for deal-specific, regulated access scenarios required in Financial Services Cloud."
+    },
+    {
+        "optionId": "3",
+        "option": "Interaction Summaries",
+        "isCorrect": false,
+        "details": "Interaction Summaries are used to capture and share summaries of client interactions such as calls and meetings, not to manage record visibility or security."
+    },
+    {
+        "optionId": "4",
+        "option": "Business Rules Engine",
+        "isCorrect": false,
+        "details": "The Business Rules Engine is used for decisioning and automation logic and does not provide record-level access control or visibility management."
+    }
+],
+"problem_statement": "The requirement is to grant selective, compliant access to deal-related records for users who are not normally associated with an account, such as legal and compliance teams.",
+"summary": "Financial Services Cloud addresses this requirement using **Compliant Data Sharing**, which enables secure, auditable, and deal-specific record access without altering standard account ownership or team structures.",
+"references": [
+    {
+        "text": "Compliant Data Sharing in Financial Services Cloud",
+        "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_cds.htm&type=5"
+    }
+]
+},
+{
+"type": "single",
+"question": "Cumulus Cloud Bank must provide its customer service staff with real-time access to customer accounts, including the ability to view current transactions and balances. As a result, the bank expects a high volume of concurrent users at peak times. <br><br>Which option is most suitable?",
+"select": 1,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Use Salesforce Connect with External Objects to expose tables from the bank’s core systems, and use custom Lightning web components to surface them in the Salesforce Lightning UI.",
+        "isCorrect": false,
+        "details": "Using Salesforce Connect with custom Lightning Web Components introduces additional development complexity and can suffer from performance issues under heavy concurrent usage, as each UI interaction may trigger real-time external calls."
+    },
+    {
+        "optionId": "2",
+        "option": "Use Salesforce Connect with External Objects to expose tables from the bank’s core systems, and use the standard user interface (UI) components to surface the records in Salesforce Lightning UI.",
+        "isCorrect": false,
+        "details": "Although Salesforce Connect with standard UI components is declarative, it still relies on real-time external object queries that may not scale well during peak usage with many concurrent users."
+    },
+    {
+        "optionId": "3",
+        "option": "Use the Data Consumption Framework to connect to the bank’s middleware.",
+        "isCorrect": true,
+        "details": "The **Data Consumption Framework** is designed to retrieve real-time data from external systems through middleware using scalable, asynchronous callouts. It supports high concurrency, avoids Apex governor limit issues, and is the recommended Salesforce approach for surfacing live balances and transaction data in FSC under high load."
+    },
+    {
+        "optionId": "4",
+        "option": "Embed custom Lightning web components on the Account and Financial Account pages, and use custom Apex to make callouts to the core system services.",
+        "isCorrect": false,
+        "details": "Custom Apex callouts embedded in Lightning Web Components can quickly hit Apex concurrency and callout limits under heavy load, making this approach less scalable and harder to maintain compared to the Data Consumption Framework."
+    }
+],
+"problem_statement": "The bank requires real-time visibility into transactions and balances while supporting a very high number of concurrent users during peak hours. The solution must scale efficiently, minimize performance bottlenecks, and follow Salesforce Financial Services Cloud best practices for real-time integrations.",
+"summary": "The **Data Consumption Framework** (Option C) is purpose-built for high-volume, real-time data access in Financial Services Cloud and is optimized to handle large numbers of concurrent users efficiently by using scalable, asynchronous calls to middleware.",
+"references": [
+    {
+        "text": "Salesforce Financial Services Cloud – Data Consumption Framework",
+        "url": "https://help.salesforce.com/s/articleView?id=ind.consumption_framework.htm&type=5"
+    }
+]
+},
+{
+"type": "multi",
+"question": "A major Japanese bank is expanding geographically and opening additional branches in Asia. As such, they hired a regional consulting firm to implement Financial Services Cloud (FSC) locally. <br><br>What are the two expectations from implementing multi language features in FSC? ",
+"select": 2,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Referrals in Singapore and Hong Kong will be shared in English, but in Macau referrals will be shared in Portuguese. ",
+        "isCorrect": false,
+        "details": "**Incorrect.** Multilingual features translate the UI and metadata *labels*, but they **do not automatically translate user-entered data** (e.g., the description text of a referral or content of a field). Data remains in the language it was entered in."
+    },
+    {
+        "optionId": "2",
+        "option": "Bankers in Japan have been accessing FSC in Japanese, but the new bankers in China will be accessing FSC in Chinese. ",
+        "isCorrect": true,
+        "details": "This is the core expectation. The user's personal language setting dictates the language for the Salesforce user interface, tabs, object names, button labels, and custom metadata translations (user interface translation)."
+    },
+    {
+        "optionId": "3",
+        "option": "In Seoul, South Korea, the branch managers will be reviewing their FSC dashboards every morning in Korean, while their colleagues in Shanghai, China, will be doing so in Chinese. ",
+        "isCorrect": true,
+        "details": "Dashboards, reports, and other UI components will display in the user's personal language setting, leveraging the configured multilingual features. The labels and interface text will be translated."
+    },
+    {
+        "optionId": "4",
+        "option": "In Tokyo branches, the names of the Account, Prospect and Contact are in Japanese, but the package Advisor, Personal Banker, Relationship Manager, and Client Associate profiles are in English. ",
+        "isCorrect": false,
+        "details": "**Incorrect.** If multilingual features are implemented, the translated names for standard FSC package elements (like profiles, apps, or components) should also appear in the user's language (Japanese), provided the translation has been configured in the Translation Workbench."
+    }
+],
+"problem_statement": "The bank needs to understand how Salesforce's standard multilingual features (Translation Workbench, Language Settings) affect the user experience across different geographic locations.",
+"summary": "Multilingual features are designed to localize the **User Interface (UI)** and **metadata labels** based on the individual user's language setting. Therefore, the UI, dashboards, and standard field labels will appear in the user's chosen language (Options B and C). ",
+"references": []
+},
+{
+"type": "multi",
+"question": "Which three processes are part of Claims Management?",
+"select": 3,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Underwriting",
+        "isCorrect": false,
+        "details": "**Incorrect.** Underwriting is a pre-policy process focused on risk assessment and policy pricing. It occurs before a policy is issued and is not part of the claims lifecycle."
+    },
+    {
+        "optionId": "2",
+        "option": "Payment",
+        "isCorrect": true,
+        "details": "**Correct.** Payment is a core claims management process. Once a claim is approved, insurers must manage and issue payments to policyholders or third parties."
+    },
+    {
+        "optionId": "3",
+        "option": "Reserve Management",
+        "isCorrect": true,
+        "details": "**Correct.** Reserve Management is essential in claims management, allowing insurers to set aside and adjust financial reserves to cover expected claim costs throughout the claim lifecycle."
+    },
+    {
+        "optionId": "4",
+        "option": "Quoting",
+        "isCorrect": false,
+        "details": "**Incorrect.** Quoting is part of the sales and policy acquisition process, where premiums are calculated and offered before a policy is purchased."
+    },
+    {
+        "optionId": "5",
+        "option": "Auto Adjudication",
+        "isCorrect": true,
+        "details": "**Correct.** Auto Adjudication enables automated claim decisioning using rules and logic, reducing manual intervention and accelerating claim resolution."
+    }
+],
+"problem_statement": "The question focuses on identifying which operational processes are included within the claims management lifecycle in an insurance context.",
+"summary": "Claims Management includes **Payment**, **Reserve Management**, and **Auto Adjudication**, which collectively support claim evaluation, financial control, and efficient settlement. Underwriting and quoting occur earlier in the insurance lifecycle and are not part of claims processing.",
+"references": [
+    {
+        "text": "Meet the Digital Insurance Platform",
+        "url": "https://trailhead.salesforce.com/content/learn/modules/digital-insurance-platform-foundations/meet-the-digital-insurance-platform"
+    }
+]
+},
+{
+"type": "multi",
+"question": "Cumulus Insurance has created a Delegated Administrator group for its franchise users to reduce the workload on head office support staff. <br><br> Which three functions should be added to the Delegated Administrator group?",
+"select": 3,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Assign or remove permission sets for users in their delegated groups. ",
+        "isCorrect": true,
+        "details": "Delegated administrators are allowed to manage the assignment of specific, pre-approved permission sets (and permission set groups) to users within their designated scope of roles and subordinates."
+    },
+    {
+        "optionId": "2",
+        "option": "Set organization-wide sharing defaults on custom objects. ",
+        "isCorrect": false,
+        "details": "Organization-Wide Defaults (OWD) are foundational security settings that affect the entire organization. These can only be managed by a System Administrator and cannot be delegated."
+    },
+    {
+        "optionId": "3",
+        "option": "Create and manage membership of specified public groups. ",
+        "isCorrect": true,
+        "details": "Delegated administrators can manage the membership (adding or removing users) for public groups that are explicitly assigned to their delegated administration group."
+    },
+    {
+        "optionId": "4",
+        "option": "Modify permission sets. ",
+        "isCorrect": false,
+        "details": "Delegated administrators can only *assign* or *remove* pre-existing permission sets. they cannot create new permission sets or modify the content of existing permission sets, as this is a high-privilege configuration task."
+    },
+    {
+        "optionId": "5",
+        "option": "Unlock users. ",
+        "isCorrect": true,
+        "details": "Delegated administrators can perform basic user access management tasks for users in their delegated roles, including unlocking users and resetting passwords."
+    }
+],
+"problem_statement": "The goal is to identify three administrative functions that can be safely and effectively delegated to non-administrator users (like franchise managers) via the **Delegated Administration Group** feature in Salesforce. These functions typically focus on user and group maintenance within a limited scope. ",
+"summary": "Delegated Administration is designed for user management tasks within a specific scope. The functions that can be delegated are **Assigning Permission Sets (A)**, **Managing Public Group membership (C)**, and basic user access control like **Unlocking Users (E)**.",
+"references": [
+    {
+        "text": "Delegate Administrative Duties",
+        "url": "https://help.salesforce.com/s/articleView?id=platform.admin_delegate.htm&type=5"
+    }
+]
+},
+{
+"type": "single",
+"question": "A new custom object has been created, and the records of this object will be created through integration with another system. <br><br>What should a consultant do to ensure the data is loading into the correct fields in Financial Services Cloud?",
+"select": 1,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Utilize a field mapping file with the external system data location and the corresponding field in Salesforce.",
+        "isCorrect": true,
+        "details": "A field mapping file (or mapping specification) is the standard technical blueprint used to align source data from an external system to the target fields in Salesforce, ensuring data integrity and correct data type alignment."
+    },
+    {
+        "optionId": "2",
+        "option": "Create a junction object between the external system and the new customer object where the data will reside.",
+        "isCorrect": false,
+        "details": "Junction objects are used within Salesforce to create many-to-many relationships between two objects; they are not used to facilitate the movement of data from an external system."
+    },
+    {
+        "optionId": "3",
+        "option": "Ensure custom metadata is configured and each custom metadata record details where the data will be sent.",
+        "isCorrect": false,
+        "details": "While custom metadata can store configuration for some integrations, the primary requirement for ensuring data lands in the correct fields is a mapping definition. Furthermore, the data is being received, not 'sent'."
+    },
+    {
+        "optionId": "4",
+        "option": "Use a CSV file with the data created and use Data Loader to map to the correct field.",
+        "isCorrect": false,
+        "details": "Data Loader is a manual tool for bulk data operations. It is not a sustainable solution for an ongoing integration between two systems."
+    }
+],
+"problem_statement": "The goal is to determine the best practice for ensuring data accuracy and field alignment when integrating an external system with a custom object in Financial Services Cloud.",
+"summary": "To ensure successful data integration, a consultant should use a **Field Mapping File (A)**. This document defines the relationship between external source fields and Salesforce target fields, which is essential for any automated integration process.",
+"references": [
+    {
+        "text": "Data Integration Best Practices",
+        "url": "https://help.salesforce.com/s/articleView?id=analytics.bi_integrate_data_prep_best_practices.htm&type=5"
+    }
+]
+},
+{
+"type": "multi",
+"question": "An insurance company wants to create a car insurance quote process for its website. The process should include the following functionality: <br>• The user has to enter contact and address information. <br>• The user has to enter the driver's age and the car model and year. <br>• The process should calculate an insurance quote based on the data the customer provided and save the offer to the client's record. <br><br>Which three OmniStudio tools should the consultant use to design a solution that meets these requirements?",
+"select": 3,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Integration Procedures ",
+        "isCorrect": true,
+        "details": "**Integration Procedures:** This server-side tool is invoked by the OmniScript to handle data orchestration, such as preparing the data and crucially, invoking the Business Rules Engine (E) to perform the quote calculation. It acts as the intermediary between the UI and the logic/data layer."
+    },
+    {
+        "optionId": "2",
+        "option": "FlexCards ",
+        "isCorrect": false,
+        "details": "FlexCards are used for displaying a 360-degree view of data or summary information, not for driving the core quote *process, orchestration, and logic*."
+    },
+    {
+        "optionId": "3",
+        "option": "APEX Code ",
+        "isCorrect": false,
+        "details": "Custom Apex is a programmatic solution that should be avoided in favor of the three declarative OmniStudio tools (OmniScript, Integration Procedures, and BRE) for building a business process like a quote application."
+    },
+    {
+        "optionId": "4",
+        "option": "OmniScripts ",
+        "isCorrect": true,
+        "details": "**OmniScripts:** This is the primary tool for building the **guided, multi-step user experience** (the web form/process) for capturing all the user input (contact, address, car details, driver age). It ensures a fast, personalized, and responsive experience."
+    },
+    {
+        "optionId": "5",
+        "option": "Business Rules Engine ",
+        "isCorrect": true,
+        "details": "**Business Rules Engine (BRE):** This tool, often utilizing Decision Matrices and Expression Sets, is essential for implementing the complex, configurable business logic required to **generate the insurance quote** based on the user's variables (age, car model, year, risk factors, etc.)."
+    }
+],
+"problem_statement": "The requirements define a guided, multi-step process that needs three key components: user interface/data capture, server-side data orchestration, and complex, configurable business logic for calculation. ",
+"summary": "The end-to-end quote process requires **OmniScripts (D)** for the UI, **Integration Procedures (A)** for data orchestration, and the **Business Rules Engine (E)** for the actual calculation logic. ",
+"references": [
+    {
+        "text": "How Auto Quote OmniScript Works (Salesforce Help)",
+        "url": "https://help.salesforce.com/s/articleView?id=ind.insurance_how_auto_quote_omniscript_works_omnistudio.htm&type=5"
+    }
+]
+},
+{
+"type": "multi",
+"question": "A wealth client owns a boutique shoe store called Smith's Shoes. Their financial advisor would like to add this relationship to Financial Services Cloud (FSC) to track the complete picture of relationships related to the wealth client’s household. <br><br>Which three options should the Financial Services Cloud consultant use when mapping this relationship in FSC?",
+"select": 3,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Contact object ",
+        "isCorrect": false,
+        "details": "The Contact object models individuals. This relationship is between two organizations (a Household and a Business), not primarily about an individual."
+    },
+    {
+        "optionId": "2",
+        "option": "Account object - Household record type ",
+        "isCorrect": true,
+        "details": "The client's aggregated financial life and family structure are tracked using an **Account** record with the **Household** record type. This defines one end of the relationship."
+    },
+    {
+        "optionId": "3",
+        "option": "Account - Account Relationship object ",
+        "isCorrect": true,
+        "details": "This FSC-specific junction object (often referred to as `AccountAccountRelation`) is required to connect the client's **Household Account** (B) to the **Business Account** (D), defining the nature of the relationship (e.g., 'Owner of', 'Employs')."
+    },
+    {
+        "optionId": "4",
+        "option": "Account object - Business record type ",
+        "isCorrect": true,
+        "details": "The shoe store (Smith's Shoes) is a commercial entity. In FSC, this is modeled as an **Account** using the **Business** record type. This defines the other end of the relationship."
+    },
+    {
+        "optionId": "5",
+        "option": "Account Contact Relationship object ",
+        "isCorrect": false,
+        "details": "This object is used to link a person (Contact) to an Account (Business or Household). it is not used to directly link two Account records to each other."
+    }
+],
+"problem_statement": "The consultant must map a relationship between two distinct entities in FSC: a client's aggregated financial group (Household) and a commercial entity they own (Business).",
+"summary": "Mapping the relationship between a client's household and a business requires identifying both entities as specific Account record types (**Household - B** and **Business - D**) and using the FSC junction object designed to link them (**Account - Account Relationship object - C**). ",
+"references": [
+    {
+        "text": "Relate a Business, Trust, or Another Household to a Household (Managed Package) - salesforce help",
+        "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_relate_account.htm&type=5"
+    }
+]
+},
+{
+"type": "single",
+"question": "A Salesforce administrator updating a record page to add a Chatter component to the Action Plan Lightning record page is unable to find the Chatter components for selection.<br><br> What is the reason for this?",
+"select": 1,
+"options": [
+    {
+    "optionId": "1",
+    "option": "Feed tracking has to be enabled for the Action Plan object.",
+    "isCorrect": true,
+    "details": "Chatter components (Feed, Publisher, Highlights) only become available on a Lightning record page when **Feed Tracking is enabled** for that object. Since feed tracking is not enabled for the Action Plan object, the admin cannot see or add Chatter components."
+    },
+    {
+    "optionId": "2",
+    "option": "Chatter has to be enabled for Action Plans via Chatter settings in setup.",
+    "isCorrect": false,
+    "details": "There is no separate Chatter enablement setting specifically for Action Plans. Chatter availability depends on object-level feed tracking, not a dedicated FSC Chatter toggle."
+    },
+    {
+    "optionId": "3",
+    "option": "Admin user has to be assigned the Action Plans permission set.",
+    "isCorrect": false,
+    "details": "Permission sets control access to records and features, but they do not control whether Chatter components appear in the Lightning App Builder."
+    },
+    {
+    "optionId": "4",
+    "option": "Salesforce is yet to roll out Chatter for the Action Plan object.",
+    "isCorrect": false,
+    "details": "Chatter is supported on Action Plans. The issue is configuration-related, not a product limitation."
+    }
+],
+"problem_statement": "The administrator is unable to add Chatter components to the Action Plan Lightning record page during page configuration.",
+"summary": "For Chatter components to appear in the Lightning App Builder, **Feed Tracking must be enabled on the Action Plan object**. Once enabled, the Chatter Feed and Publisher components become available for use on the record page.",
+"references": [
+    {
+    "text": "Enable Feed Tracking for Objects – Salesforce Help",
+    "url": "https://help.salesforce.com/s/articleView?id=experience.collab_feed_tracking_overview.htm&type=5"
+    },
+    {
+    "text": "Enable Feed Tracking –Trailhead",
+    "url": "https://trailhead.salesforce.com/content/learn/modules/lex_implementation_chatter/lex_implementation_chatter_feed_tracking"
+    }
+
+]
+    
+}, 
+{
+    "type": "multi",
+    "question": "Early in the discovery and solution meetings, it was determined that the client would primarily use out-of-the-box Financial Services Cloud (FSC) objects and components with minimal custom objects needed. In addition, it was decided that records should be private, but the managerial chain would require visibility into all their direct reports’ records. <br><br>Which three security settings must be set up in Salesforce to meet these requirements?",
+    "select": 3,
+    "options": [
+        {
+        "optionId": "1",
+        "option": "The Role Hierarchy in setup should be configured to allow for managers to automatically see records of those under them.",
+        "isCorrect": true,
+        "details": "When organization-wide defaults are set to Private, the **Role Hierarchy** ensures that managers automatically gain visibility into records owned by their direct and indirect reports, satisfying the managerial visibility requirement."
+        },
+        {
+        "optionId": "2",
+        "option": "Custom permission sets and out-of-the-box FSC permission sets should be configured or updated and assigned to all users for the use of FSC components and field-level security.",
+        "isCorrect": true,
+        "details": "Salesforce best practice is to use **permission sets** (including FSC standard permission sets) to control access to FSC components, objects, and field-level security instead of relying solely on profiles."
+        },
+        {
+        "optionId": "3",
+        "option": "Each object sharing should be set up, explicitly sharing each user's record with the manager.",
+        "isCorrect": false,
+        "details": "Explicit record sharing is unnecessary when the Role Hierarchy already provides automatic access to managers. This approach would add avoidable complexity."
+        },
+        {
+        "optionId": "4",
+        "option": "Organization-wide sharing defaults should be set to meet sharing requirements for all objects in use.",
+        "isCorrect": true,
+        "details": "To ensure records are private by default, **Organization-Wide Defaults (OWD)** must be set appropriately (typically Private) for FSC objects, forming the foundation of the sharing model."
+        },
+        {
+        "optionId": "5",
+        "option": "Only Custom Profiles should be configured and assigned to all users to use FSC components and field-level security.",
+        "isCorrect": false,
+        "details": "Salesforce recommends keeping profiles minimal and using permission sets for access control. Relying only on custom profiles is not aligned with best practices."
+        }
+    ],
+    "problem_statement": "The client requires a private data model with manager visibility and wants to rely mainly on standard FSC functionality.",
+    "summary": "To meet the requirements, Salesforce must be configured with **Private organization-wide defaults (D)**, a properly defined **Role Hierarchy (A)** for manager access, and **permission sets (B)** to control access to FSC objects, components, and fields.",
+    "references": [
+        {
+        "text": "Salesforce Security Model Overview – Salesforce Help",
+        "url": "hhttps://help.salesforce.com/s/articleView?id=xcloud.overview_security.htm&type=5"
+        },
+        {
+        "text": "Financial Services Cloud Permission Sets – Salesforce Help",
+        "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_permsetlicense.htm&type=5"
+        },
+        {
+        "text": "Salesforce Data Security Model (General Concepts)",
+        "url": "https://trailhead.salesforce.com/content/learn/modules/data_security/data_security_records"
+        }
+    ]
+    },
+{
+"type": "single",
+"question": "A financial services company needs to transform the individual data model to person accounts in Financial Services Cloud (FSC), and its consulting partner is helping decide the sequence of the user stories in the design phase.<br><br> What should the implementation team do as the top priority during planning?",
+"select": 1,
+"options": [
+    {
+    "optionId": "1",
+    "option": "Enable person account in a sandbox.",
+    "isCorrect": false,
+    "details": "Enabling Person Accounts in a sandbox is an important validation step, but it should only be done after safeguarding existing data and understanding rollback options."
+    },
+    {
+    "optionId": "2",
+    "option": "Enable person accounts in FS.",
+    "isCorrect": false,
+    "details": "Enabling Person Accounts is an irreversible change to the data model and should never be done before proper planning and data protection steps are completed."
+    },
+    {
+    "optionId": "3",
+    "option": "Perform a data backup.",
+    "isCorrect": true,
+    "details": "Enabling Person Accounts permanently changes the Account and Contact data model and cannot be undone. Performing a full **data backup** is the highest priority to protect existing data and ensure recovery in case of issues."
+    },
+    {
+    "optionId": "4",
+    "option": "Configure Person Account record types.",
+    "isCorrect": false,
+    "details": "Record type configuration is a downstream activity that occurs after Person Accounts are enabled and data safety measures are in place."
+    }
+],
+"problem_statement": "The client is planning a major data model transformation from Individuals to Person Accounts in FSC.",
+"summary": "Because enabling Person Accounts is a **one-way, irreversible operation**, the top planning priority must be to **perform a complete data backup** before any configuration or enablement steps.",
+"references": [
+    {
+    "text": "Enable Person Accounts – Salesforce Help",
+    "url": "https://help.salesforce.com/s/articleView?id=sales.account_person_enable.htm&type=5"
+    },
+    {
+    "text": "Enable Person Accounts – Salesforce PDF",
+    "url": "https://resources.docs.salesforce.com/latest/latest/en-us/sfdc/pdf/impl_person_accounts.pdf"
+    }
+
+]
+},
+{
+"type": "single",
+"question": "Which Salesforce Financial Services Cloud feature enables financial advisors to track and manage client accounts?",
+"select": 1,
+"options": [
+    {
+    "optionId": "1",
+    "option": "Performance reporting",
+    "isCorrect": false,
+    "details": "Performance reporting focuses on analytics and insights into business or portfolio performance, not on managing individual client financial accounts."
+    },
+    {
+    "optionId": "2",
+    "option": "Client onboarding",
+    "isCorrect": false,
+    "details": "Client onboarding is used to bring new clients into the system and capture initial information, but it does not manage ongoing client accounts."
+    },
+    {
+    "optionId": "3",
+    "option": "Financial accounts management",
+    "isCorrect": true,
+    "details": "Financial Accounts Management is a core Financial Services Cloud feature that allows advisors to track, view, and manage client financial accounts such as bank accounts, investments, loans, and insurance policies."
+    },
+    {
+    "optionId": "4",
+    "option": "Opportunity management",
+    "isCorrect": false,
+    "details": "Opportunity management is used for sales pipeline and deal tracking and does not provide a holistic view of a client’s financial accounts."
+    }
+],
+"problem_statement": "Financial advisors require a centralized way to view and manage all of a client’s financial holdings within Financial Services Cloud.",
+"summary": "Financial Accounts Management is the primary FSC capability that enables advisors to track and manage client financial accounts in one unified view.",
+"references": [
+    {
+    "text": "Financial Accounts in Financial Services Cloud – Salesforce Help",
+    "url": "https://trailhead.salesforce.com/content/learn/modules/client-management-with-financial-services-cloud/view-financial-accounts"
+    },
+    {
+    "text": "Financial Account Management Standard Objects",
+    "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_financial_account_management.htm&type=5"
+    },
+    {
+    "text": "How Are Financial Accounts Modeled?",
+    "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_data_model_fin_accounts.htm&type=5"
+    }
+    
+]
+},
+{
+"type": "multi",
+"question": "The Bank of the Future wants its call center agents to be able to see person accounts but wants to restrict access to financial accounts to protect the privacy of its clients.<br><br> Which two steps should an administrator take to ensure that all users can see person accounts but only specific users can view financial accounts?",
+"select": 2,
+"options": [
+    {
+    "optionId": "1",
+    "option": "Change organization-wide defaults (OWD) sharing on the Financial Accounts object to Public Read Only.",
+    "isCorrect": false,
+    "details": "Setting Financial Accounts to Public Read Only would allow all users to view sensitive financial data, which violates the requirement to restrict access for privacy reasons."
+    },
+    {
+    "optionId": "2",
+    "option": "Change organization-wide defaults (OWD) sharing on the Person Accounts object to Public Read Only.",
+    "isCorrect": true,
+    "details": "Setting Person Accounts to Public Read Only ensures that all call center agents can view client records while still limiting edit access unless additional permissions are granted."
+    },
+    {
+    "optionId": "3",
+    "option": "Edit the Lightning page assigned to the Financial Advisor Profile and remove the Financial Accounts tab.",
+    "isCorrect": false,
+    "details": "Removing the Financial Accounts tab only hides the UI component. It does not enforce data security and does not prevent access through reports, search, or APIs."
+    },
+    {
+    "optionId": "4",
+    "option": "Change organization-wide defaults (OWD) sharing on the Financial Accounts object to Private.",
+    "isCorrect": true,
+    "details": "Setting Financial Accounts OWD to Private ensures that only record owners and users with explicit sharing access can view financial data, protecting client privacy."
+    }
+],
+"problem_statement": "The business requirement is to allow broad visibility into client (Person Account) records for call center agents, while restricting access to sensitive Financial Account data to only authorized users.",
+"summary": "To meet the requirement, Person Accounts should be set to **Public Read Only** so all users can see clients, while Financial Accounts should be set to **Private** to restrict access and protect sensitive financial information. This approach follows FSC security and data privacy best practices.",
+"references": [
+    {
+    "text": "Set Organization-Wide Defaults",
+    "url": "https://help.salesforce.com/s/articleView?id=platform.admin_sharing.htm&type=5"
+    },
+    {
+    "text": "Financial Services Cloud Data Model and Security",
+    "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_data_model.htm&type=5"
+    }
+]
+},
+{
+"type": "single",
+"question": "What is a key step in identifying different business processes and outlining encompassing system flows based on the existing environment when setting up Salesforce Financial Services Cloud (FSC)?",
+"select": 1,
+"options": [
+    {
+    "optionId": "1",
+    "option": "Conducting a gap analysis between the customer's current processes and Salesforce FSC capabilities.",
+    "isCorrect": true,
+    "details": "A gap analysis helps identify differences between existing business processes and FSC out-of-the-box capabilities, enabling consultants to design accurate end-to-end system flows and determine where configuration or customization is required."
+    },
+    {
+    "optionId": "2",
+    "option": "Implementing a generic, one-size-fits-all solution for all customers.",
+    "isCorrect": false,
+    "details": "FSC implementations must be tailored to the customer’s existing processes and regulatory needs; a generic solution ignores important business context."
+    },
+    {
+    "optionId": "3",
+    "option": "Creating a new Salesforce instance from scratch for the customer.",
+    "isCorrect": false,
+    "details": "Most FSC implementations extend or configure existing Salesforce environments rather than starting from a completely new instance."
+    },
+    {
+    "optionId": "4",
+    "option": "Importing the customer's existing data into Salesforce FSC without any modifications.",
+    "isCorrect": false,
+    "details": "Data typically requires cleansing, transformation, and mapping to FSC data models; importing data as-is does not address process alignment."
+    }
+],
+"problem_statement": "The implementation team needs to understand the client’s current environment to design FSC business processes and system flows.",
+"summary": "Conducting a **gap analysis** is the foundational step for identifying business processes and defining system flows when implementing Salesforce Financial Services Cloud.",
+"references": []
+},
+{
+"type": "single",
+"question": "An investment banker is looking to take detailed meeting notes and share them easily with his colleagues while specifying confidentiality and meeting attendees.<br><br> Which Financial Services Cloud feature should a consultant recommend in this scenario?",
+"select": 1,
+"options": [
+{
+    "optionId": "1",
+    "option": "Events",
+    "isCorrect": false,
+    "details": "Events are used for basic calendar scheduling but lack the structured fields for detailed note-taking and the granular confidentiality controls required for investment banking."
+},
+{
+    "optionId": "2",
+    "option": "Engagement Interaction",
+    "isCorrect": false,
+    "details": "Engagement Interactions track the occurrence of a communication (like a call or chat) but are not designed for the detailed, compliant note-taking needed for deal-side summaries."
+},
+{
+    "optionId": "3",
+    "option": "Interaction Summary",
+    "isCorrect": true,
+    "details": "Interaction Summaries allow bankers to capture detailed notes, manage meeting attendees, and use compliant data sharing to ensure sensitive information is only visible to authorized colleagues."
+},
+{
+    "optionId": "4",
+    "option": "Notes",
+    "isCorrect": false,
+    "details": "Standard Salesforce Notes provide basic text capabilities but do not offer the specific financial services compliance features or structured attendee tracking found in Interaction Summaries."
+}
+],
+"problem_statement": "The client needs a compliant way to document sensitive investment banking meetings while ensuring strict control over who can access the information.",
+"summary": "The **Interaction Summary** feature in Financial Services Cloud is the standard solution for capturing detailed, compliant meeting notes with specific privacy and attendee controls.",
+"references": [
+{
+    "text": "Capture and Share Meeting Notes with Interaction Summaries",
+    "url": "https://help.salesforce.com/s/articleView?id=release-notes.rn_fsc_interaction_summary.htm&release=230&type=5"
+},
+{
+    "text": "Interaction Summary Fields",
+    "url": "https://help.salesforce.com/s/articleView?id=ind.psc_capture_interaction_notes.htm&type=5"
+}
+]
+},
+{
+"type": "single",
+"question": "A financial services company needs to add new values for how a customer can be related to a financial account.<br><br> Which object/field should the administrator add new values on?",
+"select": 1,
+"options": [
+{
+    "optionId": "1",
+    "option": "Object: Account-Account Relationship;<br>Field: Related Role",
+    "isCorrect": false,
+    "details": "Account-Account Relationships are used to define how two entities relate to each other (e.g., Lawyer to Client), not how a person relates to a specific financial asset."
+},
+{
+    "optionId": "2",
+    "option": "Object: Financial Account;<br>Field: Joint Owner",
+    "isCorrect": false,
+    "details": "The Joint Owner field is a lookup to an Account and cannot be customized with multiple 'relationship values' beyond its specific lookup purpose."
+},
+{
+    "optionId": "3",
+    "option": "Object: Financial Account;<br>Field: Primary Owner",
+    "isCorrect": false,
+    "details": "The Primary Owner field is a lookup used to identify the main holder of the account, not for defining granular roles like Trustee or Beneficiary."
+},
+{
+    "optionId": "4",
+    "option": "Object: Financial Account Role;<br>Field: Role",
+    "isCorrect": true,
+    "details": "The Financial Account Role object is the standard junction object in FSC used to define the nature of a person's involvement with a financial account (e.g., Trustee, Beneficiary, or Power of Attorney) via the Role picklist field."
+}
+],
+"problem_statement": "The administrator needs to expand the list of available relationships a customer can have with a financial account beyond standard ownership.",
+"summary": "To define new customer roles for a financial account, administrators should add values to the **Role** picklist field on the **Financial Account Role** object.",
+"references": [
+{
+    "text": "Financial Account Role Fields",
+    "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_add_financial_account_role.htm&type=5"
+},
+{
+    "text": "Create Financial Account Roles",
+    "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_add_financial_account_role.htm&type=5"
+},
+{
+    "text": "FinServ_FinancialAccountRole__c",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.financial_services_cloud_object_reference.meta/financial_services_cloud_object_reference/sforce_api_objects_financialaccountrole.htm"
+},
+{
+    "text": "Explore Financial Account Roles and Financial Goals",
+    "url": " https://trailhead.salesforce.com/content/learn/modules/client-management-with-financial-services-cloud/explore-financial-account-roles-and-financial-goals"
+}
+
+
+]
+},
+
+{
+"type": "single",
+"question": "Agents for an insurance company need to know the current and past weather conditions when creating customer claims. The consultant implements a FlexCard for weather conditions in the console to ensure the agents can access the information. The FlexCard needs to provide fields extracted from a weather API and an account field from Salesforce.<br><br> Which method should the consultant use, according to best practices?",
+"select": 1,
+"options": [
+{
+    "optionId": "1",
+    "option": "DataRaptor Extract",
+    "isCorrect": false,
+    "details": "DataRaptor Extracts are limited to retrieving data stored within Salesforce objects and cannot perform external HTTP calls to a weather API."
+},
+{
+    "optionId": "2",
+    "option": "Streaming API",
+    "isCorrect": false,
+    "details": "Streaming API is used for broadcasting notifications about data changes in Salesforce, not for pulling on-demand data from external REST services."
+},
+{
+    "optionId": "3",
+    "option": "Integration Procedure",
+    "isCorrect": true,
+    "details": "Integration Procedures are the best practice for FlexCards when data from multiple sources (Salesforce and External APIs) must be combined and returned in a single server-side call."
+},
+{
+    "optionId": "4",
+    "option": "APEX classes",
+    "isCorrect": false,
+    "details": "While Apex can achieve this, OmniStudio best practices prioritize declarative Integration Procedures to minimize custom code and improve maintainability."
+}
+],
+"problem_statement": "The solution must combine internal Salesforce Account data with real-time external API data for display on a single UI component.",
+"summary": "An **Integration Procedure** is the standard OmniStudio tool for orchestrating multi-source data fetches, combining a DataRaptor (for Salesforce data) and an HTTP Action (for the Weather API).",
+"references": [
+{
+    "text": "OmniStudio Integration Procedures",
+    "url": "https://help.salesforce.com/s/articleView?id=xcloud.os_omnistudio_integration_procedures_48334.htm&type=5"
+},
+{
+    "text": "FlexCards Data Source Overview",
+    "url": "https://help.salesforce.com/s/articleView?id=xcloud.os_configure_a_data_source_on_a_flexcard.htm&type=5"
+},
+{
+    "text": "Get Started with Omnistudio Integration Procedures",
+    "url": "https://trailhead.salesforce.com/content/learn/modules/omnistudio-integration-procedures/get-started-omnistudio-integration-procedures"
+}
+]
+},
+{
+        "type": "single",
+        "question": "A retail bank is using Financial Services Cloud to support its operations. The bank has received complaints that its clients' documentation is often submitted late and when clients call, customer service agents are struggling with multiple systems to determine where the documentation is. <br><br>Which solution should a consultant suggest the client explore",
+        "select": 1,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "An APEX solution to leverage the SendMail capabilities of Salesforce ",
+                "isCorrect": false,
+                "details": "An APEX solution to leverage the SendMail capabilities of Salesforce is a custom and overly complex solution for a process that can be addressed by a standard FSC feature."
+            },
+            {
+                "optionId": "2",
+                "option": "A Marketing Cloud integration to manage client communications ",
+                "isCorrect": false,
+                "details": "A Marketing Cloud integration is designed for mass or campaign-based communications, not for the transactional, document-specific communication required in an onboarding process."
+            },
+            {
+                "optionId": "3",
+                "option": "The Send Documents flow for Retail Banking ",
+                "isCorrect": true,
+                "details": "The 'Send Documents' flow is the most appropriate FSC-specific solution. It is an out-of-the-box feature that provides a streamlined, guided, and integrated user experience for document submission and communication required during the retail banking onboarding process."
+            },
+            {
+                "optionId": "4",
+                "option": "Process Builder to create automated document requests for missing items ",
+                "isCorrect": false,
+                "details": "Process Builder is a legacy automation tool and, while it can create requests, it does not provide the integrated, guided, and streamlined user experience for document submission and communication that the 'Send Documents' flow offers."
+            }
+        ],
+        "problem_statement": "The core problem is a cumbersome onboarding process where service agents use multiple systems to capture data and documents, leading to a poor client experience. The consultant must recommend a streamlined, single-screen FSC feature to manage document collection and communications efficiently.",
+        "summary": "The correct recommendation is **The Send Documents flow for Retail Banking**. This is an out-of-the-box FSC feature designed to simplify and digitize the process of collecting required documents from clients during onboarding, directly addressing the cumbersome and multi-system data capture problem.",
+        "references": [
+            {
+                "text": "Add Documents to the Send Documents Flow",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_flows_admin_add_documents.htm&type=5"
+            }
+        ]
+    },
+    {
+"type": "multi",
+"question": "Cumulus Cloud Bank is asking the consultant to explain some tools available to integrate Salesforce into several of its back-end/core systems.<br> Which three capabilities should a consultant recommend?",
+"select": 3,
+"options": [
+{
+    "optionId": "1",
+    "option": "OmniStudio Integration Procedures",
+    "isCorrect": true,
+    "details": "Integration Procedures are server-side applications used to execute multiple actions in a single server call. They are ideal for orchestrating complex back-end integrations and combining data from multiple sources for the banking UI."
+},
+{
+    "optionId": "2",
+    "option": "Industry Integration Solutions with the MuleSoft Anypoint Platform",
+    "isCorrect": true,
+    "details": "For a large bank, MuleSoft provides enterprise-level connectivity to legacy core systems (like FIS or Fiserv). Salesforce offers pre-built industry assets to accelerate these integrations."
+},
+{
+    "optionId": "3",
+    "option": "Data Consumption Framework",
+    "isCorrect": true,
+    "details": "The Data Consumption Framework is a specific Financial Services Cloud capability designed to handle real-time data from external systems (via Continuations), ensuring the UI stays responsive during core system lookups."
+},
+{
+    "optionId": "4",
+    "option": "Data Processing Engine",
+    "isCorrect": false,
+    "details": "The Data Processing Engine is primarily used for high-volume data transformation and aggregation within Salesforce (e.g., calculating loyalty points or rebates), rather than serving as a primary external integration bridge."
+},
+{
+    "optionId": "5",
+    "option": "OmniStudio DataRaptors",
+    "isCorrect": false,
+    "details": "While DataRaptors (Data Mappers) are used for mapping, in a 'Choose 3' scenario focused on architectural capabilities, Integration Procedures (A), MuleSoft (B), and the Data Consumption Framework (C) represent the primary integration pillars for a core banking strategy."
+}
+],
+"problem_statement": "The bank needs a scalable and performant way to connect Salesforce to multiple back-end core systems using Financial Services Cloud best practices.",
+"summary": "To meet the bank's requirements, the consultant should recommend **OmniStudio Integration Procedures (A)** for logic orchestration, **MuleSoft (B)** for enterprise legacy connectivity, and the **Data Consumption Framework (C)** for efficient real-time data retrieval.",
+"references": [
+{
+    "text": "OmniStudio Integration Procedures – Salesforce Help",
+    "url": "https://help.salesforce.com/s/articleView?id=xcloud.os_omnistudio_integration_procedures_48334.htm&type=5"
+},
+{
+    "text": "Connect to Core Banking with MuleSoft – Trailhead",
+    "url": "https://trailhead.salesforce.com/content/learn/trails/great-integrations-mulesoft"
+},
+{
+    "text": "Financial Services Cloud Data Consumption Framework Guide",
+    "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_data_consumption_framework_pointer.htm&type=5"
+}
+]
+},
+{
+"type": "single",
+"question": "Which step is required to give a group of users access to a Financial Deal?",
+"select": 1,
+"options": [
+{
+    "optionId": "1",
+    "option": "Update Industries Settings to give users access to the Financial Deal object.",
+    "isCorrect": false,
+    "details": "Industries Settings enable the feature globally but do not handle record-level security or user-specific access."
+},
+{
+    "optionId": "2",
+    "option": "Change organization-wide defaults (OWD) sharing on the Financial Deal object to Public Read/Write.",
+    "isCorrect": false,
+    "details": "Setting OWD to Public is insecure and against banking best practices for sensitive financial deal data."
+},
+{
+    "optionId": "3",
+    "option": "Create a Financial Deal permission set and assign it to the users that should have access to Financial Deals.",
+    "isCorrect": false,
+    "details": "Permission sets provide object-level permissions, but they do not grant access to specific records when the sharing model is Private."
+},
+{
+    "optionId": "4",
+    "option": "Share a Financial Deal record with a group by adding them as participants to the record from the Financial Deal Participants related list.",
+    "isCorrect": true,
+    "details": "Using the Financial Deal Participants related list leverages Compliant Data Sharing (CDS) to grant specific record-level access to users or groups based on their assigned roles."
+}
+],
+"problem_statement": "The user needs to grant record-level access to a sensitive Financial Deal record while maintaining a compliant and secure sharing model.",
+"summary": "The correct method to grant access to a Financial Deal is through **Compliant Data Sharing (CDS)** by adding users to the **Financial Deal Participants (D)** related list.",
+"references": [
+{
+    "text": "Compliant Data Sharing in Financial Services Cloud",
+    "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_cds.htm&type=5"
+},
+{
+    "text": "Manage Financial Deal Participants",
+    "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_share_deal_using_manage_participants.htm&type=5"
+}
+]
+},
+{
+        "type": "single",
+        "question": "OmniScript represents processes with fast, personalized, and consistent responses. This type extends the metadata type and inherits its fullname field. <br><br>To use the OmniScript metadata type, what should the administrator enable in the Salesforce org?",
+        "select": 1,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "Discovery Framework ",
+                "isCorrect": false,
+                "details": "Discovery Framework is an FSC feature built **on top** of OmniScript; it is not a prerequisite for enabling the OmniScript runtime itself."
+            },
+            {
+                "optionId": "2",
+                "option": "Custom Domain ",
+                "isCorrect": true,
+                "details": "**Custom Domain (My Domain)** is a fundamental, required prerequisite for many modern Salesforce features, including all Lightning Web Component (LWC) based technology, which forms the backbone of OmniStudio/OmniScript. It ensures proper URL and content hosting for secure OmniScript operation."
+            },
+            {
+                "optionId": "3",
+                "option": "Einstein Relationship Insights ",
+                "isCorrect": false,
+                "details": "This is an AI feature in FSC, unrelated to the technical requirement for deploying and running OmniScript."
+            },
+            {
+                "optionId": "4",
+                "option": "Lightning Experience for Financial Services Cloud ",
+                "isCorrect": false,
+                "details": "While OmniScript runs in Lightning Experience, the specific technical requirement for LWC-based components like OmniScript is the enablement of a Custom Domain (My Domain)."
+            }
+        ],
+        "problem_statement": "The question asks for the fundamental Salesforce organization setting that must be enabled to utilize the OmniScript metadata type and ensure its functionality. OmniStudio components are often deployed externally or rely on modern LWC-based technology. ",
+        "summary": "OmniScript relies on the foundational Salesforce platform features for proper deployment and security. The required prerequisite is **Custom Domain (B)**, also known as My Domain.",
+        "references": []
+    },
+    {
+        "type": "single",
+        "question": "Cumulus Bank has branches in multiple countries that are required to report in local currency, while the corporate headquarters office wishes to see reports in a single currency (the corporate currency). <br><br>Which solution should a consultant recommend to meet these requirements?",
+        "select": 1,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "Enable multiple currencies and advanced currency management, and set a corporate currency for the corporate headquarters office. ",
+                "isCorrect": true,
+                "details": "This is the optimal, standard Salesforce solution. **Multiple Currencies** allows records to be created in the local currency. The designated **Corporate Currency** acts as the baseline for consolidation. **Advanced Currency Management (ACM)** uses time-dependent (dated) exchange rates, ensuring that reports reflect the correct conversion rate at the time of the transaction, which is essential for accurate financial reporting and auditing."
+            },
+            {
+                "optionId": "2",
+                "option": "Allow users to set their preferred currency in their profile and input reports in that preferred currency. ",
+                "isCorrect": false,
+                "details": "A user's personal currency setting only dictates the display currency for that user, not the fundamental ability to record transactions in multiple currencies and convert them systematically for corporate reporting."
+            },
+            {
+                "optionId": "3",
+                "option": "Set the default currency for head office and have the regions download reports to Excel and convert them manually. ",
+                "isCorrect": false,
+                "details": "Manual conversion is inefficient, error-prone, and defeats the purpose of using a centralized system like FSC for financial data integrity."
+            },
+            {
+                "optionId": "4",
+                "option": "Use a third party from AppExchange add-on to implement currency conversion. ",
+                "isCorrect": false,
+                "details": "While this is an option, the standard, native Salesforce features (Option A) fully address the stated requirements without introducing the cost or complexity of an external application."
+            }
+        ],
+        "problem_statement": "The bank requires two capabilities: 1) recording transactions in local currencies, and 2) generating consolidated reports in a single, corporate currency (Multi-currency reporting). Additionally, accurate historical financial data often requires the use of dated exchange rates. ",
+        "summary": "The standard Salesforce feature set is designed for this exact scenario. The consultant must recommend **Enabling multiple currencies and advanced currency management, and setting a corporate currency (A)**. This configuration allows branches to record transactions in local currency while providing the corporate office with accurately converted reports using historical exchange rates (Dated Exchange Rates).",
+        "references": [
+            {
+                "text": "Enable Multiple Currencies",
+                "url": "https://help.salesforce.com/s/articleView?id=sales.admin_currency.htm&language=en_US&type=5"
+            },
+            {
+                "text": "Multi-Currency in Salesforce: Managing Global Sales",
+                "url": "https://noltic.com/stories/enabling-salesforce-multi-currency-feature-for-global-sales"
+            },
+            {
+                "text": "Setting Up and Using Multi Currency on Salesforce Reports and Dashboards,",
+                "url": "https://www.youtube.com/watch?v=pQkS5f0GjKY"
+            }
+        ]
+    },
+    {
+"type": "multi",
+"question": "A wealth advisor is trying to relate a client to their attorney using the Add Contact option on the relationship tree but can't find any reciprocal roles displayed in the related role lookup. What are two reasons for this?",
+"select": 2,
+"options": [
+{
+    "optionId": "1",
+    "option": "Reciprocal roles have not been created in the org.",
+    "isCorrect": true,
+    "details": "Reciprocal roles are data records that must be manually created or uploaded by an admin. If the lookup is empty, the underlying records likely do not exist."
+},
+{
+    "optionId": "2",
+    "option": "The user should be using the Member Relationship button under Actionable Relationship Center.",
+    "isCorrect": false,
+    "details": "ARC is a different tool for viewing relationships; it doesn't solve a lack of underlying data or permissions in the standard relationship tree."
+},
+{
+    "optionId": "3",
+    "option": "The user should be using the Edit Group button to access reciprocal roles.",
+    "isCorrect": false,
+    "details": "Edit Group is used for managing Household members, whereas Add Contact on the tree is specifically for Contact-to-Contact relationships."
+},
+{
+    "optionId": "4",
+    "option": "Sharing rules have not been set up for reciprocal roles.",
+    "isCorrect": true,
+    "details": "If the Reciprocal Role object is set to Private and no sharing rules exist, users cannot see the roles in lookups, even if they have been created."
+}
+],
+"problem_statement": "The advisor cannot see any options in the Related Role lookup field when attempting to link two contacts on the relationship map.",
+"summary": "The absence of roles in the lookup is caused by either **missing data (A)** (roles haven't been created) or **insufficient permissions (D)** (sharing settings prevent the user from seeing the role records).",
+"references": [
+{
+    "text": "Create Reciprocal Roles in Financial Services Cloud",
+    "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_config_reciprocal_roles.htm&type=5"
+}
+]
+},
+{
+"type": "single",
+"question": "A financial services company needs a custom field for reporting when relating two business accounts to each other.<br><br> Which object should the administrator configure the custom field on?",
+"select": 1,
+"options": [
+{
+    "optionId": "1",
+    "option": "Account",
+    "isCorrect": false,
+    "details": "The Account object stores information about the entity itself, not the specific details of how it relates to another account."
+},
+{
+    "optionId": "2",
+    "option": "Account Account Relationship",
+    "isCorrect": true,
+    "details": "In FSC, the Account Account Relationship object is the correct place to store metadata and custom fields describing the connection between two business accounts."
+},
+{
+    "optionId": "3",
+    "option": "Contact-Contact Relationship",
+    "isCorrect": false,
+    "details": "This object is used for Person-to-Person relationships, not Business-to-Business."
+},
+{
+    "optionId": "4",
+    "option": "Account Contact Relationship",
+    "isCorrect": false,
+    "details": "This object manages the relationship between an individual Contact and a Business Account."
+}
+],
+"problem_statement": "The administrator needs to capture specific reporting data that describes the link between two separate Business Accounts.",
+"summary": "To report on the relationship between two business accounts, the administrator must add the custom field to the **Account Account Relationship (B)** object.",
+"references": [
+{
+    "text": "Account-Account Relationships in Financial Services Cloud",
+    "url": "https://developer.salesforce.com/docs/atlas.en-us.financial_services_cloud_object_reference.meta/financial_services_cloud_object_reference/fsc_sforce_api_objects_accountaccountrelation.htm"
+}
+]
+},
+{
+        "type": "single",
+        "question": "When importing records from a system outside of Salesforce, which ID should be used to prevent the data import from creating duplicates?",
+        "select": 1,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "Org ID",
+                "isCorrect": false,
+                "details": "The Org ID is the unique identifier for your entire Salesforce organization/instance. It is not used for matching individual record data during import operations."
+            },
+            {
+                "optionId": "2",
+                "option": "User ID",
+                "isCorrect": false,
+                "details": "A User ID is the unique identifier for a specific user record in Salesforce. It is only relevant for identifying which user owns or created a record, not for matching the primary data record itself across systems."
+            },
+            {
+                "optionId": "3",
+                "option": "External ID",
+                "isCorrect": true,
+                "details": "The **External ID** is a custom field in Salesforce with the 'External ID' attribute checked. It stores the unique record identifier from the source system. When performing an **upsert** operation with tools like the Data Loader, Salesforce uses this field to match incoming records, updating existing records and preventing duplicates."
+            },
+            {
+                "optionId": "4",
+                "option": "Data Load ID",
+                "isCorrect": false,
+                "details": "There is no standard Salesforce field named 'Data Load ID'. The tool used is often the 'Data Loader', which *uses* the External ID field for matching."
+            }
+        ],
+        "problem_statement": "The user needs a method to reliably match records between an external system and Salesforce during an import process (upsert). This ensures that existing records are updated rather than duplicated.",
+        "summary": "The correct ID to use is the **C. External ID**. This field is specifically designed in Salesforce to store unique identifiers from external systems and is utilized during data operations (like Data Loader upserts) to prevent duplicates. ",
+        "references": [
+            {
+                "text": "Salesforce Help: Differences between the 'External ID' field and the 'Unique ID' field setting",
+                "url": "https://help.salesforce.com/s/articleView?id=000385174&language=en_US&type=1"
+            },
+            {
+                "text": "Trailhead: Import and Export with Data Management Tools",
+                "url": "https://trailhead.salesforce.com/content/learn/projects/import-and-export-with-data-management-tools"
+            }
+        ]
+    },
+{
+        "type": "multi",
+        "question": "Cumulus Bank has implemented Compliant Data Sharing in Financial Services Cloud. <br>Which two things happen when an opportunity record that has opportunity participants with associated share table entries is set to Private?",
+        "select": 2,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "Share table records need to be manually deleted.",
+                "isCorrect": false,
+                "details": "Share table records are managed automatically by Compliant Data Sharing. Manual deletion is not required."
+            },
+            {
+                "optionId": "2",
+                "option": "All opportunity participant records are deleted.",
+                "isCorrect": false,
+                "details": "Compliant Data Sharing does not delete opportunity participant records, as they represent the business relationship and context, not access control."
+            },
+            {
+                "optionId": "3",
+                "option": "The opportunity participant records are not deleted.",
+                "isCorrect": true,
+                "details": "Opportunity participant records are preserved when visibility is changed, allowing for auditability and future re-sharing."
+            },
+            {
+                "optionId": "4",
+                "option": "The share table records are deleted.",
+                "isCorrect": true,
+                "details": "Share table records control access to the Opportunity. When the record is set to Private, Compliant Data Sharing automatically deletes the associated share table entries to revoke access."
+            }
+        ],
+        "problem_statement": "The question tests how Compliant Data Sharing (CDS) behaves when an Opportunity record is changed to Private, specifically focusing on the impact to participant records and share table entries.",
+        "summary": "When an Opportunity is set to Private under Compliant Data Sharing, access is revoked by deleting **share table records** (D), while **opportunity participant records** (C) are preserved because they hold business context. ",
+        "references": [
+            {
+                "text": "Salesforce Financial Services Cloud – Compliant Data Sharing",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_compliant_data_sharing.htm&type=5"
+            }
+        ]
+    },
+    {
+"type": "single",
+"question": "A regional bank is implementing Financial Services Cloud (FSC). Today, relationship managers receive email reminders 2 days, 2 weeks, and 2 months after a new customer opens their first bank account to contact the customer for feedback. In addition, the bank wants the ability for relationship managers to track and report on progress in FSC.<br><br> What should the administrator do when designing the future state business process using FSC features?",
+"select": 1,
+"options": [
+{
+    "optionId": "1",
+    "option": "When a lead or referral is converted, create an action plan with tasks to follow up in 2 days, 2 weeks, and 2 months.",
+    "isCorrect": false,
+    "details": "Lead conversion is an earlier stage in the lifecycle and may not represent a finalized 'Customer' status with an open account."
+},
+{
+    "optionId": "2",
+    "option": "When an account status is changed to 'Customer', send emails to the Account Owner to follow up in 2 days, 2 weeks, and 2 months.",
+    "isCorrect": false,
+    "details": "Emails do not satisfy the bank's requirement to track and report on progress within the system."
+},
+{
+    "optionId": "3",
+    "option": "When creating an account, create an action plan with tasks to follow up in 2 days, 2 weeks, and 2 months.",
+    "isCorrect": false,
+    "details": "Accounts can be created as prospects; triggering only on creation might include records that never actually open a bank account."
+},
+{
+    "optionId": "4",
+    "option": "When an account status is changed to 'Customer', create an action plan with tasks to follow up in 2 days, 2 weeks, and 2 months.",
+    "isCorrect": true,
+    "details": "This uses the Action Plans feature to provide both automated task creation and the reporting/tracking capabilities the bank requires, triggered at the correct lifecycle stage."
+}
+],
+"problem_statement": "The bank needs a standardized, reportable way to ensure relationship managers follow up with new customers at specific intervals.",
+"summary": "By using **Action Plans triggered by a Status change (D)**, the bank gains visibility into employee productivity and ensures a consistent customer experience.",
+"references": [
+{
+    "text": "Action Plans in Financial Services Cloud",
+    "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_action_plans_overview.htm&type=5"
+}
+
+]
+},
+{
+        "type": "multi",
+        "question": "During a Financial Services Cloud implementation at an insurance company, a consultant needs to design a broker data model for the broker web portal. The given requirements are:<br> 1.Brokers are treated individually, even if they are associated with the same company.<br> 2.Brokers should never have access to other brokers’ data.<br> 3.Brokers can nominate their assistants to access the broker portal.<br> 4.An assistant can sometimes work for multiple brokers.<br><br> Which two considerations should the consultant consider regarding the data model?",
+        "select": 2,
+        "options": [
+            {
+            "optionId": "1",
+            "option": "Brokers need to be modeled as Account and Contact individually, as each broker is a legal entity in Salesforce. Then, use a Group Account to model their company.",
+            "isCorrect": true,
+            "details": "Each broker must be treated as an individual legal entity with strict data isolation. Modeling each broker as their own Account (with an associated Contact) ensures proper security and sharing. A Group Account can be used to represent the broker company without granting brokers access to each other’s data."
+            },
+            {
+            "optionId": "2",
+            "option": "The Broker Assistant should be modeled as a Contact. Then, use Contact to Contact association if they need work for multiple Brokers.",
+            "isCorrect": false,
+            "details": "Contact-to-Contact relationships are typically used for personal relationships (such as spouse or family). They are not appropriate for modeling a professional assistant working for multiple broker businesses."
+            },
+            {
+            "optionId": "3",
+            "option": "Brokers should be modeled as Contact and the Broker company should be modeled as Account, even if they're a legal entity individually.",
+            "isCorrect": false,
+            "details": "Modeling brokers only as Contacts limits security and sharing capabilities. It does not meet the requirement to treat each broker as an individual legal entity with strict data separation."
+            },
+            {
+            "optionId": "4",
+            "option": "The Broker Assistant should be modeled as a Contact. Then, leverage Contact to Multiple Account features if this assistant needs to work for multiple brokers.",
+            "isCorrect": true,
+            "details": "Broker assistants are people and should be modeled as Contacts. Using Contact-to-Multiple-Account relationships allows a single assistant Contact to be related to multiple broker Accounts with appropriate roles, without duplicating records."
+            }
+        ],
+        "problem_statement": "The insurance company needs a broker data model that treats brokers as individual entities, enforces strict data isolation between brokers, and supports assistants who may work for one or more brokers.",
+        "summary": "To meet the requirements, brokers should be modeled as individual Accounts (with Contacts) and grouped under a Group Account for company association. Broker assistants should be modeled as Contacts and related to multiple broker Accounts using Contact-to-Multiple-Account relationships. This approach ensures data security, flexibility, and FSC best practices.",
+        "references": [
+            {
+            "text": "Financial Services Cloud Data Model Overview",
+            "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_overview_data_model.htm&type=5"
+            },
+            {
+            "text": "Contacts to Multiple Accounts",
+            "url": "https://help.salesforce.com/s/articleView?id=sf.contacts_to_multiple_accounts.htm&type=5"
+            }
+        ]
+        },
+        {
+        "type": "multi",
+        "question": "A financial services company needs to capture a new type of referral that has different required fields than what is currently configured in the org. <br><br>Which three steps should the administrator take to configure Financial Services Cloud correctly based on the scenario",
+        "select": 3,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "Create a new record type 'Referral' on the Lead object. ",
+                "isCorrect": true,
+                "details": "Creating a new Record Type on the standard Lead object is the first step to define the new set of required fields and picklist values for the 'new type of referral'."
+            },
+            {
+                "optionId": "2",
+                "option": "Assign the record type to users. ",
+                "isCorrect": true,
+                "details": "Once the new Lead Record Type is created, it must be assigned to the relevant user profiles or permission sets so users can access and select the new referral type when creating a lead. This is essential for access control."
+            },
+            {
+                "optionId": "3",
+                "option": "Create a custom Referral object. ",
+                "isCorrect": false,
+                "details": "FSC leverages the standard Lead object for referral intake. Creating a custom object is unnecessary and deviates from the FSC data model, which is highly discouraged."
+            },
+            {
+                "optionId": "4",
+                "option": "Create a new referral record type mapper record. ",
+                "isCorrect": true,
+                "details": "This is the crucial, unique FSC-specific step. The **Referral Record Type Mapper** custom object links the new Lead record type (created in A) to the FSC Referral Management system, activating it for the specialized referral process."
+            },
+            {
+                "optionId": "5",
+                "option": "Update the lead page layout. ",
+                "isCorrect": false,
+                "details": "While a new page layout is necessary, options A, B, and D address the core data structure, access, and FSC functional linkage, making them the superior choices for the *three* most critical steps."
+            }
+        ],
+        "problem_statement": "The company needs to introduce a new, distinct type of referral with unique required fields. In Financial Services Cloud (FSC), the Referrals feature is built upon the standard Lead object. This requires configuration steps on the Lead object (Record Type and Layout) and within the FSC Referral Management module (Mapper). ",
+        "summary": "To enable a new type of referral with different fields, the administrator must first create the new data structure (**Create a new record type - A**), ensure users can see it (**Assign the record type - B**), and finally, link it to the FSC processing engine (**Create a new referral record type mapper record - D**).",
+        "references": [
+            {
+                "text": "Create and Configure Custom Record Types for Referrals",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_config_referrals_record_type.htm&type=5"
+            }
+        ]
+    },
+    {
+        "type": "multi",
+        "question": "Which three permission sets grant access or extend permissions for record alerts in Financial Services Cloud (FSC)?",
+        "select": 3,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "OmniStudio Admin permission set ",
+                "isCorrect": false,
+                "details": "OmniStudio Admin permission set: This set grants configuration and administration rights (for building FlexCards, etc.), not the general user access required solely for viewing and using the feature."
+            },
+            {
+                "optionId": "2",
+                "option": "OmniStudio User permission set ",
+                "isCorrect": true,
+                "details": "OmniStudio User permission set: Provides the necessary access to run and view the underlying OmniStudio components (like FlexCards and Integration Procedures) that are used to display the Record Alerts to end-users."
+            },
+            {
+                "optionId": "3",
+                "option": "FSC Basic permission set ",
+                "isCorrect": false,
+                "details": "FSC Basic permission set: This is not a standard, pre-packaged permission set that specifically grants Record Alert access in the way the Foundations and Standard sets do; its permissions are typically covered by the other two required sets."
+            },
+            {
+                "optionId": "4",
+                "option": "FSC Standard permission set ",
+                "isCorrect": true,
+                "details": "FSC Standard permission set: Grants access to the full suite of FSC features, including the ability to view and manage Record Alerts, and is typically assigned to most financial services users."
+            },
+            {
+                "optionId": "5",
+                "option": "FSC Foundations permission set ",
+                "isCorrect": true,
+                "details": "FSC Foundations permission set: Grants access to the fundamental, shared features of FSC, including the basic functionality for viewing Record Alerts on supported objects."
+            }
+        ],
+        "problem_statement": "The goal is to identify the three Salesforce permission sets that are essential for granting access or permissions to use and view the **Record Alerts** feature within Financial Services Cloud (FSC). This feature often relies on underlying OmniStudio (FlexCards) components for display.",
+        "summary": "Access to Record Alerts requires permissions from both the **OmniStudio** module, which displays the alerts, and the **FSC foundational permission sets** that manage user feature access. The correct sets are **OmniStudio User**, **FSC Standard**, and **FSC Foundations**. ",
+        "references": [
+            {
+                "text": "Permission Set Licenses for Financial Services Cloud",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_flows_admin_config_referrals_record_type.htm&type=5"
+            }
+        ]
+    },
+    {
+"type": "single",
+"question": "In Financial Services Cloud, what is the criteria for commas and symbols to be displayed correctly on the Financial Account Summary component?",
+"select": 1,
+"options": [
+{
+    "optionId": "1",
+    "option": "User currency must match org default currency.",
+    "isCorrect": false,
+    "details": "The org default currency provides a baseline, but individual user formatting is driven by personal locale and currency settings, not a match with the org default."
+},
+{
+    "optionId": "2",
+    "option": "User's locale must match user's currency.",
+    "isCorrect": true,
+    "details": "The locale defines the numeric format (commas/periods), while the currency defines the symbol. They must be aligned for the Financial Account Summary to display data in the expected regional format."
+},
+{
+    "optionId": "3",
+    "option": "User's locale and language must match user's currency.",
+    "isCorrect": false,
+    "details": "Language affects the translation of labels, but it does not dictate the mathematical formatting of commas and symbols; that is handled strictly by the Locale."
+},
+{
+    "optionId": "4",
+    "option": "Account currency must match org default currency.",
+    "isCorrect": false,
+    "details": "The currency of the specific Financial Account record determines the value's denomination, but the *user's* settings determine how that value is visually rendered."
+}
+],
+"problem_statement": "An advisor is seeing inconsistent formatting (e.g., decimal points where they expect commas) on the summary component and needs to adjust user settings to fix the display.",
+"summary": "To ensure correct symbol and comma rendering, an administrator must ensure the **User's Locale matches their User Currency (B)**.",
+"references": [
+{
+    "text": "Select Your Language, Locale, and Currency - Salesforce Help",
+    "url": "https://help.salesforce.com/s/articleView?id=xcloud.admin_language_locale_currency.htm&type=5"
+},
+{
+    "text": "Select Which Locales and Currencies Your Storefront Supports- Salesforce Help",
+    "url": "https://help.salesforce.com/s/articleView?id=sf.b2b_commerce_locales_currencies.htm&type=5"
+},
+{
+    "text": "Change Language in Salesforce",
+    "url": "https://help.salesforce.com/s/articleView?id=000385317&type=1"
+}
+]
+},
+{
+        "type": "multi",
+        "question": "Which three related lists are visible within Actionable Relationship Center associated with the Account object?",
+        "select": 3,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "Household Financial Accounts",
+                "isCorrect": true,
+                "details": "Household Financial Accounts are displayed in ARC to provide visibility into financial accounts associated with the household or account group, supporting relationship-based insights."
+            },
+            {
+                "optionId": "2",
+                "option": "Client Financial Goals",
+                "isCorrect": true,
+                "details": "Client Financial Goals are visible in ARC to help advisors and service teams understand client objectives directly from the Account relationship view."
+            },
+            {
+                "optionId": "3",
+                "option": "Notes and Attachments",
+                "isCorrect": false,
+                "details": "Notes and Attachments are standard Salesforce related lists but are not included in the predefined ARC related lists for the Account object."
+            },
+            {
+                "optionId": "4",
+                "option": "Cases",
+                "isCorrect": true,
+                "details": "Cases are shown in ARC to give service context and allow users to track ongoing or past service interactions related to the Account."
+            },
+            {
+                "optionId": "5",
+                "option": "Financial Holdings",
+                "isCorrect": false,
+                "details": "Financial Holdings are accessed through Financial Account relationships and dashboards, but they are not exposed as a direct related list within ARC."
+            }
+        ],
+        "problem_statement": "The Actionable Relationship Center (ARC) in Financial Services Cloud provides relationship-focused insights by displaying a predefined set of related lists for the Account object. The administrator must know which related lists are supported and visible within ARC.",
+        "summary": "ARC supports client-centric and service-related data. The three related lists visible within Actionable Relationship Center (ARC) for the Account object are **Household Financial Accounts (A)**, **Client Financial Goals (B)**, and **Cases (D)**. ",
+        "references": [
+            {
+                "text": "Salesforce Financial Services Cloud – Actionable Relationship Center Related Lists",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_arc_related_lists.htm&type=5"
+            }
+        ]
+    },
+{
+        "type": "single",
+        "question": "A consulting firm is asked to add Events and Milestones to a Lightning record page to give financial advisors deeper insights into their customers' lives. <br><br>What should the consultant configure to enable advisors to capture Once-in-a-Lifetime events and, at the same time, prevent users from accidentally creating more than one event of such an event type?",
+        "select": 1,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "Special event types ",
+                "isCorrect": false,
+                "details": "Not the correct, standard, configurable option or terminology used within the FSC Events and Milestones feature to enforce uniqueness."
+            },
+            {
+                "optionId": "2",
+                "option": "Unique Event types ",
+                "isCorrect": true,
+                "details": "This is the specific Salesforce Financial Services Cloud configuration setting used to prevent users from creating a duplicate event record of that type for the same client (e.g., getting married, having a first child). This directly addresses the requirement for uniqueness. The feature is sometimes also referred to as 'Once-in-a-Lifetime Event Types' in context."
+            },
+            {
+                "optionId": "3",
+                "option": "Once-in-a-Lifetime event types ",
+                "isCorrect": false,
+                "details": "While this term accurately describes the *intent* of the feature, the configurable setting name in FSC documentation is 'Unique Event Type'."
+            },
+            {
+                "optionId": "4",
+                "option": "Single event types ",
+                "isCorrect": false,
+                "details": "Not the correct standard terminology in FSC."
+            }
+        ],
+        "problem_statement": "The consulting firm needs to configure the Events and Milestones feature in Salesforce Financial Services Cloud (FSC) to capture specific life events that, by their nature, can only happen once per client (e.g., getting married or having a first child). The requirement is to enforce a **unique occurrence** for these specific event types. ",
+        "summary": "The consultant should configure the event using the **Unique Event types (B)** feature. This is the standard FSC setting designed specifically to prevent users from creating duplicate records of that event type for the same client.",
+        "references": [
+            {
+                "text": "Unique Event Type",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_unique_event_type.htm&type=5"
+            }
+        ]
+    },
+    {
+        "type": "multi",
+        "question": "A company wants to convert its Salesforce Financial Services Cloud implementation from using the individual account model to using person accounts. <br><br>Which three things should a consultant do to prepare for the conversion?",
+        "select": 3,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "Test out the conversion in a sandbox, including all integrations and customizations",
+                "isCorrect": true,
+                "details": "Testing in a sandbox is a mandatory best practice to ensure integrations, customizations, and automations are not broken by the data model change."
+            },
+            {
+                "optionId": "2",
+                "option": "Ensure each account.phone field in the individual account record is blank ",
+                "isCorrect": false,
+                "details": "Phone fields are typically merged, not blanked, to prevent data loss."
+            },
+            {
+                "optionId": "3",
+                "option": "Ensure all individual account records to be converted are only linked to exactly one contact record",
+                "isCorrect": true,
+                "details": "The conversion tool requires a strict one-to-one relationship between the Individual Account and its corresponding Contact to merge them into a single Person Account."
+            },
+            {
+                "optionId": "4",
+                "option": "Ensure each individual account to be converted is not a parent account of any other account records. ",
+                "isCorrect": true,
+                "details": "Person Accounts cannot be a parent account to a Business Account, so existing parent-child Account relationships involving the individual account must be resolved first."
+            },
+            {
+                "optionId": "5",
+                "option": "Update all opportunities linked to individual account records to be owned by the individual account record's owner",
+                "isCorrect": false,
+                "details": "Opportunities are linked to the Account and owned by Users; changing ownership to a Contact is unnecessary and incorrect."
+            }
+        ],
+        "problem_statement": "The goal is to migrate a Salesforce Financial Services Cloud (FSC) implementation from the **Individual Account Model** (Account + Contact for a person) to the **Person Account Model** (a single record for a person). This change requires specific data preparation steps.",
+        
+        "summary": "The preparation involves **testing** the change in a sandbox, ensuring a **strict one-to-one relationship** between the Individual Account and its Contact, and resolving any **parent-child account hierarchies** where the individual account is the parent. ",
+        
+        "references": [
+            {
+                "text": "Transform the Individual Data Model to Person Accounts in Financial Services Cloud",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_person_accounts.htm&type=5"
+            },
+            {
+                "text": "Convert Individual Model Account and Contact Records to Person Account Records in Financial Services Cloud",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_transform_ia_to_pa.htm&type=5"
+            },
+            {
+                "text": "Setting Up Person Accounts",
+                "url": "https://resources.docs.salesforce.com/latest/latest/en-us/sfdc/pdf/impl_person_accounts.pdf"
+            }
+        ]
+    },
+    {
+"type": "multi",
+"question": "A wealth management division manages the financial assets of many wealthy clients. <br><br>Which three steps should the Financial Services Cloud consultant take to offer a high level of customization to boost user productivity?",
+"select": 3,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Assign the Custom Field Set to the Financial Summary component.",
+        "isCorrect": true,
+        "details": "Assigning a field set to the Financial Summary component ensures that specific, relevant financial data is surfaced immediately for the user, reducing clicks and boosting productivity."
+    },
+    {
+        "optionId": "2",
+        "option": "Assign the Custom Field Set to a Lightning component.",
+        "isCorrect": true,
+        "details": "In Financial Services Cloud, Lightning components can be customized using field sets to display tailored information specific to the business needs of the user."
+    },
+    {
+        "optionId": "3",
+        "option": "Create a Custom Field Set solely for the Wealth Managers without affecting the Investment Bankers.",
+        "isCorrect": true,
+        "details": "Creating role-specific field sets allows for a highly customized UI experience where Wealth Managers see the data points relevant to them without impacting other personas like Investment Bankers."
+    },
+    {
+        "optionId": "4",
+        "option": "Create a new type of person account so trust group details roll down to the beneficiaries level.",
+        "isCorrect": false,
+        "details": "Financial Services Cloud uses the Relationship Map and Account-Account Relationships to handle trusts and beneficiaries; creating a new account type is not the standard way to achieve this customization."
+    },
+    {
+        "optionId": "5",
+        "option": "Create and assign the Custom Field Set permission set to all users.",
+        "isCorrect": false,
+        "details": "Assigning the same configuration to all users defeats the purpose of high-level customization for specific productivity needs across different roles."
+    }
+],
+"problem_statement": "The objective is to provide a tailored user experience in Financial Services Cloud (FSC) for a wealth management division. The consultant needs to use configuration tools that allow different personas (Wealth Managers vs. Investment Bankers) to see specific data sets to improve their daily workflow efficiency.",
+"summary": "To boost productivity through customization, the consultant should use **Field Sets** assigned to specific **Lightning components** and the **Financial Summary component**. This allows for role-based data visibility, such as creating specific views for Wealth Managers that do not impact Investment Bankers.",
+"references": [
+    {
+        "text": "Financial Summary Rollup",
+        "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_fincl_summary_rollup.htm&type=5"
+    },
+    {
+        "text": "Configure the Claim Financial Summary",
+        "url": "https://help.salesforce.com/s/articleView?id=ind.insurance_configure_the_claim_financial_summary_620121.htm&type=5"
+    },
+    {
+        "text": "Financial Services Cloud Customization Basics",
+        "url": "https://trailhead.salesforce.com/content/learn/modules/fsc_data_model/fsc_data_model_unit_2"
+    },
+    {
+        "text": "Work with Field Sets",
+        "url": "https://developer.salesforce.com/docs/atlas.en-us.pages.meta/pages/pages_dynamic_vf_field_sets.htm"
+    }
+]
+},
+{
+"type": "multi",
+"question": "An asset management firm that is moving to Salesforce from its old CRM wants to be able to bring over its client data on drivers' licenses and passports. <br><br>Which Financial Services Cloud object should a consultant recommend?",
+"select": 1,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Identity Document",
+        "isCorrect": false,
+        "details": "This is a commonly used but incorrect name for the standard FSC object."
+    },
+    {
+        "optionId": "2",
+        "option": "Received Document",
+        "isCorrect": false,
+        "details": "This object is used to track documents received during a process, not to store the structured identity data itself."
+    },
+    {
+        "optionId": "3",
+        "option": "Document Checklist Item",
+        "isCorrect": false,
+        "details": "This object tracks the status of an item requested as part of a checklist, not the identity data."
+    },
+    {
+        "optionId": "4",
+        "option": "Identification Document",
+        "isCorrect": true,
+        "details": "The `Identification Document` object (`FinServ__IdentificationDocument__c`) is the standard FSC object designed specifically to store structured client identity information like passport and driver's license details."
+    }
+],
+"problem_statement": "The goal is to migrate structured data about client identity verification documents (driver's licenses, passports) into Salesforce Financial Services Cloud (FSC). The consultant needs to identify the correct standard FSC object for this purpose.",
+"summary": "The `Identification Document` object is the correct standard FSC object for storing detailed identity verification information such as document type, number, issue date, and expiration date, directly related to a client's account.",
+"references": [
+    {
+        "text": "Identification Document Object",
+        "url": "https://developer.salesforce.com/docs/atlas.en-us.financial_services_cloud_object_reference.meta/financial_services_cloud_object_reference/sforce_api_objects_identificationdocument.htm#:~:text=Cloud%20Developer%20Guide-,FinServ_IdentificationDocument__c,Restricted%20picklist%2C%20Sort%2C%20Update%20Description"
+    },
+    {
+        "text": "Data Model Reference for Financial Services Cloud",
+        "url": "https://developer.salesforce.com/docs/platform/data-models/guide/financial-services-overview.html"
+    }
+    
+]
+},
+{
+        "type": "single",
+        "question": "How are identification documents, other assets, liabilities, goals, and revenue modeled, in an existing Financial Services Cloud org using the individual account model?",
+        "select": 1,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "Custom object is used to represent other assets, liabilities, and goals. In the individual model, these objects are related to the person account. ",
+                "isCorrect": false,
+                "details": "This option is correct for the **Person Account Model**, but incorrect for the **Individual Account Model** (where the person is represented by an Account + Contact record)."
+            },
+            {
+                "optionId": "2",
+                "option": "The Attachment object is used to represent other assets, liabilities, and goals. In the individual model, these attachments are related to the Account object ",
+                "isCorrect": false,
+                "details": "Attachments are used for **unstructured documents** (e.g., copies of ID documents), not for structured financial data that requires calculations and aggregation."
+            },
+            {
+                "optionId": "3",
+                "option": "Custom objects are used to represent other assets, liabilities, and goals. In the individual model, these objects are related to the Account object. ",
+                "isCorrect": true,
+                "details": "This is the correct design pattern. FSC uses specialized custom objects (e.g., `FinancialHolding`, `FinancialGoal`, `FinancialAccountRole`) to store structured financial information. In the Individual Account Model, these custom financial objects are linked via a lookup field to the individual's **Account** record."
+            },
+            {
+                "optionId": "4",
+                "option": "Document, Note, and Attachment objects are used to represent other assets, liabilities, and goals. In the individual model, these objects are related to the person account. ",
+                "isCorrect": false,
+                "details": "These objects are used for storing **unstructured files and notes**, whereas Assets, Liabilities, and Goals are structured financial data points modeled using dedicated custom objects."
+            }
+        ],
+        "problem_statement": "Identify the correct standard FSC data model pattern for storing structured financial data (Assets, Liabilities, Goals, etc.) when the Individual Account model is implemented.",
+        "summary": "In the FSC Individual Model, the individual is represented by an Account and Contact record. All structured financial data is stored in specialized **Custom Objects** and linked directly to that individual's **Account** record (Option C). ",
+        "references": [
+            {
+                "text": "How Are Identification Documents, Other Assets, Liabilities, Goals, and Revenue Modeled in Financial Services Cloud?",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_data_model_other_financials.htm&type=5"
+            }
+        ]
+    },
+    {
+        "type": "single",
+        "question": "An insurance company needs to ensure the record rollups aggregate information from related records for several objects in Financial Services Cloud at a client or group level. <br><br>What should the administrator configure to meet the requirement? ",
+        "select": 1,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "To show all Primary Group member cases on a related list at the group level, the administrator should add Cases as a picklist value to the Rollup__c field on Account Contact Relationship.",
+                "isCorrect": true,
+                "details": "This is the documented configuration step for enabling group-level rollups for records like Cases, Opportunities, and Referrals. The administrator must add the object name (e.g., 'Cases') as a picklist value to the **Rollups__c field on the Account Contact Relationship object** to include those records in the group's related lists."
+            },
+            {
+                "optionId": "2",
+                "option": "When the administrator enables record rollups at the group level, all corresponding records are stamped with the Primary Group in the Rollup__c lookup field.",
+                "isCorrect": false,
+                "details": "This describes the **result** (or automatic processing) of the rollup logic—how records are technically linked via stamping—not the **manual configuration step** that the administrator must perform to activate rollups for specific objects like Cases."
+            },
+            {
+                "optionId": "3",
+                "option": "Client-level records are aggregated by setting up client-level rollups to all primary group members.",
+                "isCorrect": false,
+                "details": "This reverses the direction of aggregation. Rollups aggregate individual records **up to** the group/client level, not the reverse."
+            },
+            {
+                "optionId": "4",
+                "option": "To show all Primary Group member opportunities on a related list at the group level, the administrator should add Opportunities as a picklist value to the Household__c field on Account Contact Relationship.",
+                "isCorrect": false,
+                "details": "This option is incorrect because the required picklist value must be added to the **Rollups__c** field (or an equivalent), not the `Household__c` field."
+            }
+        ],
+        "problem_statement": "The bank needs the administrator to configure a mechanism to include certain objects (like Cases, Opportunities, Policies, or Referrals) in the group-level record rollups.",
+        "summary": "To enable rollups for objects not set up by default, the administrator must add the object's name as a picklist value to the **Rollups__c field on the Account Contact Relationship object** (Option A). ",
+        "references": [
+            {
+                "text": "Enable Rollups for Opportunities, Policies, Claims, and Referrals",
+                "url": "https://trailhead.salesforce.com/content/learn/modules/record-rollups-in-financial-services-cloud/configure-record-rollups"
+            },
+            {
+                "text": "Enable Group Record Rollups (Managed Package)",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_enable_group_record_rollup.htm&type=5"
+            }
+        ]
+    },
+    {
+            "type": "multi",
+"question": "A bank recently sold its wealth management division and wants to improve its customers’ digital experience. The bank engaged Salesforce Professional Services to upgrade its existing Salesforce CRM to Financial Services Cloud and deliver its Bank of the Future vision.<br> <br>Which three expected outcomes can serve as return on investment (ROI) justifications to the bank's chief financial officer (CFO) and investment committee?",
+"select": 3,
+"options": [
+{
+    "optionId": "1",
+    "option": "Manage policy holders' interactions with customer service agents intelligently through the underwriting process.",
+    "isCorrect": false,
+    "details": "This outcome is specific to Insurance (Life or P&C) and does not apply to the banking scenario described."
+},
+{
+    "optionId": "2",
+    "option": "Deliver connected and personalized digital experiences to the bank's customers thanks to a 360-degree view of its customer data consolidating multiple customer databases and sources from diverse channels at the bank.",
+    "isCorrect": true,
+    "details": "Consolidating data into a Customer 360 view is a primary ROI driver, enabling the bank to increase revenue through hyper-personalization and reduced data fragmentation."
+},
+{
+    "optionId": "3",
+    "option": "Unify and improve team collaboration by sharing and managing customer leads and referrals across multiple lines of business at the bank to drive customers’ financial needs and deepen client relationships.",
+    "isCorrect": false,
+    "details": "While a core feature of FSC, it is excluded here in favor of the direct operational impact of onboarding and the strategic shift in advisor engagement."
+},
+{
+    "optionId": "4",
+    "option": "Simplify the client onboarding process with proper tools to streamline customer discovery and internal reviews through renewal.",
+    "isCorrect": true,
+    "details": "Streamlining onboarding provides a clear 'hard ROI' by reducing operational costs, lowering abandonment rates, and accelerating time-to-revenue."
+},
+{
+    "optionId": "5",
+    "option": "Modernize client-advisor experiences from engagement to relationship management to effectively drive long-term, trusted relationships.",
+    "isCorrect": true,
+    "details": "Modernizing the experience transforms the bank from a transactional entity to a trusted partner, which is a critical strategic ROI for long-term retention."
+}
+],
+"problem_statement": "The bank needs to prove to the CFO that FSC will deliver both immediate operational savings and long-term strategic value.",
+"summary": "The strongest ROI justifications in this configuration are **Data Consolidation (B)**, **Onboarding Efficiency (D)**, and **Relationship Modernization (E)**.",
+"references": [
+{
+    "text": "Financial Services Cloud for Retail Banking",
+    "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_landing_retail.htm&language=en_US&type=5"
+}
+]
+},
+{
+"type": "multi",
+"question": "Which three insurance processes are managed by the Policy Administration component?",
+"select": 3,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Payments",
+        "isCorrect": true,
+        "details": "The Policy Administration component manages policy premium collections and payment tracking."
+    },
+    {
+        "optionId": "2",
+        "option": "Approvals",
+        "isCorrect": false,
+        "details": "Approvals are a general workflow tool and not listed as a core insurance process managed by this specific component."
+    },
+    {
+        "optionId": "3",
+        "option": "Commissions",
+        "isCorrect": false,
+        "details": "Commissions are handled by other specific features or systems, not the core Policy Administration component."
+    },
+    {
+        "optionId": "4",
+        "option": "Endorsements",
+        "isCorrect": true,
+        "details": "The component manages policy changes and endorsements throughout the policy lifecycle."
+    },
+    {
+        "optionId": "5",
+        "option": "Underwriting",
+        "isCorrect": true,
+        "details": "The component facilitates the underwriting process for assessing risks and determining policy terms."
+    }
+],
+"problem_statement": "The user needs to identify the three specific insurance processes that the Policy Administration component in Salesforce Financial Services Cloud is designed to manage, based on Salesforce documentation.",
+"summary": "the Policy Administration component manages the processes of **Payments**, **Endorsements**, and **Underwriting**.",
+"references": [
+    {
+        "text": "Meet Individual Policy Administration | Salesforce Trailhead",
+        "url": "https://trailhead.salesforce.com/content/learn/modules/individual-insurance-policy-administration-foundations/meet-individual-policy-administration"
+    }
+]
+},
+{
+        "type": "single",
+        "question": "How should developers configure customized nodes for display in ARC?",
+        "select": 1,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "Reference the Lightning Web Component in the Display properties of the custom ARC relationship graph. ",
+                "isCorrect": false,
+                "details": "Reference the Lightning Web Component in the Display properties of the custom ARC relationship graph. While FlexCards are built on LWCs, ARC requires referencing the FlexCard, not the raw LWC."
+            },
+            {
+                "optionId": "2",
+                "option": "Select Use FlexCard from the node Display tab to show the node in a FlexCard ",
+                "isCorrect": false,
+                "details": "Select Use FlexCard from the node Display tab to show the node in a FlexCard. This phrasing does not accurately describe the required configuration action in the ARC setup interface."
+            },
+            {
+                "optionId": "3",
+                "option": "Reference the FlexCard in the Display properties of the custom ARC relationship graph. ",
+                "isCorrect": true,
+                "details": "Reference the FlexCard in the Display properties of the custom ARC relationship graph. The ARC Configuration requires a developer to specify the name of the **FlexCard** that will render the custom node's information and actions."
+            },
+            {
+                "optionId": "4",
+                "option": "Select Use LWC from the node Display tab to show the node in a Lightning Web Component ",
+                "isCorrect": false,
+                "details": "Select Use LWC from the node Display tab to show the node in a Lightning Web Component. This is incorrect; ARC nodes are configured using FlexCards, not raw LWCs."
+            }
+        ],
+        "problem_statement": "The question asks for the specific method developers must use within the Actionable Relationship Center (ARC) configuration to define the visual display and user interface of a customized node. ",
+        "summary": "Actionable Relationship Center (ARC) uses FlexCards as the standard component to display node information and actions. The correct method is to **Reference the FlexCard in the Display properties of the custom ARC relationship graph**.",
+        "references": [
+            {
+                "text": "ARC Container Release Notes",
+                "url": "https://help.salesforce.com/s/articleView?id=release-notes.rn_fsc_arc_container.htm&release=242&type=5"
+            }
+        ]
+    },
+    {
+        "type": "multi",
+        "question": "Cumulus Bank wants to use Interactions to capture conversations that investment bankers have with their clients. Due to the sensitive nature of the interactions, the bank needs to carefully limit access to the detailed notes for certain groups. Basic information about attendees and meeting dates is not sensitive.<br><br> Which three options should a consultant recommend? (Choose 3 options.) ",
+        "select": 3,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "Disable Role-Hierarchy-Based Sharing for Interaction Summaries. ",
+                "isCorrect": true,
+                "details": "This is a necessary step when implementing CDS for high security. Disabling this prevents users above the record owner in the role hierarchy (like managers) from automatically gaining access to the sensitive summaries, thereby ensuring access is strictly restricted to those explicitly granted via CDS."
+            },
+            {
+                "optionId": "2",
+                "option": "Enable Compliant Data Sharing for Interactions. ",
+                "isCorrect": false,
+                "details": "The core data, and thus the object requiring the security controls, is the **Interaction Summary**, not the parent Interaction object."
+            },
+            {
+                "optionId": "3",
+                "option": "Enable Compliant Data Sharing for Interaction Summaries. ",
+                "isCorrect": true,
+                "details": "The Interaction Summary object is where the sensitive notes and details of the conversation are stored. CDS is the feature specifically designed in FSC to provide granular, explicit sharing control required for sensitive records. "
+            },
+            {
+                "optionId": "4",
+                "option": "Disable Role-Hierarchy-Based Sharing for Engagement Interactions. ",
+                "isCorrect": false,
+                "details": "Engagement Interaction is a different object used to record specific touchpoints (e.g., call, email); the sensitive content that needs restriction is primarily stored in the **Interaction Summary**."
+            },
+            {
+                "optionId": "5",
+                "option": "Use Interaction Summary Participants to provide the right access to individuals or groups. ",
+                "isCorrect": true,
+                "details": "The Participant object (`InteractionSummaryParticipant`) is the mechanism CDS uses to grant explicit, controlled access. The record owner defines who gets Read/Edit access to the summary by creating a Participant record."
+            }
+        ],
+        "problem_statement": "The bank needs a solution to capture sensitive client conversations using the Interaction/Interaction Summary feature and impose strict, granular access restrictions, overriding the standard, broader Role Hierarchy sharing.",
+        "summary": "The consultant should recommend implementing **Compliant Data Sharing (CDS) on the Interaction Summary (C)**, **disabling Role Hierarchy sharing (A)** to prevent automatic access, and using the **Participant object (E)** to explicitly grant restricted access. ",
+        "references": [
+            {
+                "text": "Set Up Interaction Summaries",
+                "url": "https://trailhead.salesforce.com/content/learn/modules/interaction-summaries-in-financial-services-cloud/set-up-interaction-summaries"
+            },
+            {
+                "text": "Interaction Summaries salesforce help",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_interaction_summaries.htm&type=5"
+            }
+        ]
+    },
+    {
+"type": "multi",
+"question": "An administrator is logged into Data Loader with their own credentials to insert new Business Account records into their Salesforce environment. They forget to specify the Account Owner field in the import file. <br><br>Assuming there are no other issues, what should happen when the administrator uploads the import file?",
+"select": 1,
+"options": [
+    {
+        "optionId": "1",
+        "option": "The import will succeed, and the Account Owner field will be left blank.",
+        "isCorrect": false,
+        "details": "All records in Salesforce must have an owner, so the field cannot be left blank."
+    },
+    {
+        "optionId": "2",
+        "option": "The import will succeed, and the administrator will be prompted to select a user.",
+        "isCorrect": false,
+        "details": "Data Loader is a non-interactive tool during the import process and does not prompt for user input in this manner."
+    },
+    {
+        "optionId": "3",
+        "option": "The import will succeed, and the administrator will be named as the default Account Owner.",
+        "isCorrect": true,
+        "details": "When an owner is not specified in the import file, Salesforce automatically assigns ownership of the new records to the user running the Data Loader process."
+    },
+    {
+        "optionId": "4",
+        "option": "The import will fail, since all records in Salesforce must have an owner.",
+        "isCorrect": false,
+        "details": "The import will not fail because an owner is automatically assigned by the system (the logged-in user), satisfying the requirement that all records must have an owner."
+    }
+],
+"problem_statement": "The user needs to understand the default behavior of Salesforce and Data Loader when a required owner field is omitted during an insert operation.",
+"summary": "When performing an insert operation using Data Loader without specifying the owner in the source file, Salesforce automatically assigns ownership of the new records to the user whose credentials are used to log into Data Loader.",
+"references": [
+    {
+        "text": "Data Loader Operations: Insert, Update, or Upsert Data",
+        "url": "https://developer.salesforce.com/docs/atlas.en-us.dataLoader.meta/dataLoader/inserting_updating_or_deleting_data.htm"
+    },
+    {
+        "text": "Considerations Before Importing or Updating Records",
+        "url": "https://help.salesforce.com/s/articleView?id=xcloud.faq_import_general_update_with_import_wizard.htm&type=5"
+    }
+]
+},
+{
+        "type": "multi",
+        "question": "During the delivery stage of a Financial Services Cloud (FSC) implementation, a consultant needs to think about how to utilize FSC-related objects.<br><br> Which three things should the consultant consider when adopting such objects?",
+        "select": 3,
+        "options": [
+            {
+                "optionId": "1",
+                "option": " Role Hierarchy-based sharing can be disabled for the Financial Deal object but can't be disabled for the Opportunity object.",
+                "isCorrect": true,
+                "details": "FSC allows Role Hierarchy sharing to be disabled for the **Financial Deal** object, which is necessary for strict control over sensitive deal data, a feature not available for the standard **Opportunity** object."
+            },
+            {
+                "optionId": "2",
+                "option": " In a household, each of the household members is modeled as a Person Account and the household is modeled as an Account.",
+                "isCorrect": true,
+                "details": "This is the core B2C data model in FSC when Person Accounts are enabled. An individual client is a **Person Account**, and the **Household** group is a standard **Account** record type."
+            },
+            {
+                "optionId": "3",
+                "option": "Both the Financial Deal object and the Opportunity object support Compliant Data Sharing.",
+                "isCorrect": true,
+                "details": "**Compliant Data Sharing (CDS)** is a declarative sharing model used in FSC to restrict access to sensitive records on a need-to-know basis. It supports key objects like **Financial Deal** and the standard **Opportunity** object."
+            },
+            {
+                "optionId": "4",
+                "option": "In a household, each household member is modeled as a Contact, and the household is modeled as an Account.",
+                "isCorrect": false,
+                "details": "This describes the standard B2B Sales Cloud or the FSC Individual Account model. FSC typically uses **Person Accounts** for individuals in a Household model (Option B)."
+            },
+            {
+                "optionId": "5",
+                "option": "Interaction Summary is an enhancement of the standard Activity object. FSC implementations should use Interaction Summary as a replacement for the Activity object.",
+                "isCorrect": false,
+                "details": "**Interaction Summary** is meant to **supplement** standard activities (Tasks/Events) by capturing structured, compliant notes, not replace them."
+            }
+        ],
+        "problem_statement": "The question asks for key considerations regarding the data model and sharing controls for core Financial Services Cloud (FSC) objects, such as Household, Financial Deal, and Interaction Summary.",
+        "summary": "The correct options cover the unique B2C Person Account model used in FSC Households (**B**), and the specific sharing capabilities provided for sensitive objects like Financial Deal and Opportunity, including disabling Role Hierarchy (**A**) and enabling Compliant Data Sharing (**C**). ",
+        "references": [
+            {
+                "text": "Salesforce help- household",
+                "url": "https://help.salesforce.com/s/articleView?id=sfdo.npsp_what_is_an_account_model.htm&type=5"
+            },
+            {
+                "text": "Salesforce help- CDS",
+                "url": "https://help.salesforce.com/s/articleView?id=sales.admin_currency.htm&language=en_US&type=5"
+            },
+            {
+                "text": "Trailhead -- CDS and Role Hierarchy–Based Sharing  ",
+                "url": "https://trailhead.salesforce.com/content/learn/modules/compliant-data-sharing-in-financial-services-cloud/get-started-with-compliant-data-sharing"
+            }
+        ]
+    },
+    {
+"type": "multi",
+"question": "A Financial Services Cloud (FSC) administrator wants to create a new FSC permission set that includes the Access Interest Tags for Financial Services Cloud permission. <br><br>Which two permission sets should be cloned to create this new permission set and give access to interest tags?",
+"select": 2,
+"options": [
+    {
+        "optionId": "1",
+        "option": "FSC Extension permission set",
+        "isCorrect": true,
+        "details": "The FSC Extension permission set is one of the standard sets that includes 'Access Interest Tags' and is designed to be cloned for custom permission management."
+    },
+    {
+        "optionId": "2",
+        "option": "FSC Basic permission set",
+        "isCorrect": false,
+        "details": "This permission set does not typically include the advanced features like Interest Tags."
+    },
+    {
+        "optionId": "3",
+        "option": "FSC Foundations permission set",
+        "isCorrect": true,
+        "details": "The FSC Foundations permission set provides the core access required for many FSC features, including Interest Tags, and serves as a primary source for cloning."
+    },
+    {
+        "optionId": "4",
+        "option": "FSC Standard permission set",
+        "isCorrect": false,
+        "details": "This is not the standard name for the specific permission sets used for cloning Interest Tag access in FSC."
+    }
+],
+"problem_statement": "An administrator needs to provide 'Access Interest Tags' to users via a custom permission set. To do this efficiently, they must identify which standard FSC permission sets already contain this permission to use as a template for cloning.",
+"summary": "To grant access to Interest Tags in Financial Services Cloud, a consultant should clone either the **FSC Foundations** or **FSC Extension** permission sets, as these standard sets include the necessary 'Access Interest Tags' permission.",
+"references": [
+    {
+        "text": "Financial Services Cloud Permission Sets",
+        "url": "https://quip.com/0alMAbUf14SY/Financial-Services-Cloud-Permission-Set-Licenses"
+    }
+]
+},
+{
+        "type": "multi",
+        "question": "One administrator user at a financial services company needs to help management build reports and gain insights into business performance by including branch management reportable objects.<br><br>Which two considerations should the administrator include when configuring the report?",
+        "select": 2,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "The reportable objects include Banker, Branch Unit, Branch Unit Related Records, and Branch Unit Customer.",
+                "isCorrect": true,
+                "details": "**Banker, Branch Unit, Branch Unit Related Records, and Branch Unit Customer** are the standard Branch Management objects that Salesforce explicitly exposes as reportable objects for branch-level reporting."
+            },
+            {
+                "optionId": "2",
+                "option": "Bankers with Branches with Opportunities, Accounts, Leads, and Contacts report types are available for creating reports with Branch Unit Related Records.",
+                "isCorrect": true,
+                "details": "Salesforce provides out-of-the-box report types such as **Bankers with Branches with Opportunities, Accounts, Leads, and Contacts**, enabling administrators to build reports that include Branch Unit Related Records without creating custom report types."
+            },
+            {
+                "optionId": "3",
+                "option": "When Branch Unit is the primary object, the administrator can select Branch Unit Customers or Branch Unit Related Records as related objects.",
+                "isCorrect": false,
+                "details": "Although Branch Unit can be used as a primary object in reports, this specific configuration detail is not listed as a primary consideration in the Salesforce Branch Management reportable objects documentation."
+            },
+            {
+                "optionId": "4",
+                "option": "Branch Unit Related Record report types have related object names including Lead, Account, and Contact but exclude Financial Account.",
+                "isCorrect": false,
+                "details": "The documentation does not state that Financial Accounts are excluded from Branch Unit Related Record report types, making this option incorrect."
+            }
+        ],
+        "problem_statement": "Management needs branch-level reporting to analyze business performance. The administrator must understand which Branch Management objects are reportable and which standard report types Salesforce provides to support branch performance reporting in Financial Services Cloud.",
+        "summary": "Salesforce Financial Services Cloud provides specific Branch Management reportable objects and standard report types (A and B) that allow reporting across bankers, branches, and related business records. ",
+        "references": [
+            {
+                "text": "Salesforce Financial Services Cloud – Branch Management Reportable Objects",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_branch_reportable_objects.htm&type=5"
+            },
+            {
+                "text": "Configure Branch Management in Financial Services Cloud",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_branch_configure.htm&type=5"
+            }
+        ]
+    },
+    {
+        "type": "multi",
+        "question": "Financial Services Cloud (FSC) contains a number of custom objects to model a client’s financial information, and each object can be configured to appear as tabs in your org. For example, if a consultant wanted to create a financial goal for a customer, they could use the Financial Goal object in FSC.<br><br>What are three objects in FSC?",
+        "select": 3,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "Billing ",
+                "isCorrect": false,
+                "details": "Billing: While financial firms handle billing, this is primarily a firm-side administrative function and is not one of the three core objects used to model the *client's* financial profile (assets, income, goals)."
+            },
+            {
+                "optionId": "2",
+                "option": "Financial Holdings ",
+                "isCorrect": true,
+                "details": "**Financial Holdings:** This object is foundational for tracking a client's **assets and investments**. It represents individual holdings within a financial account (like a specific stock or mutual fund) and is critical for accurate net worth calculation and portfolio analysis."
+            },
+            {
+                "optionId": "3",
+                "option": "Inheritance ",
+                "isCorrect": false,
+                "details": "Inheritance: This is not a primary, dedicated custom object for continuous client profile modeling in FSC. Inheritance is typically tracked via related assets/liabilities or specialized transactions/events."
+            },
+            {
+                "optionId": "4",
+                "option": "Revenue ",
+                "isCorrect": true,
+                "details": "**Revenue:** This object is used to capture, classify, and track recurring client **income streams** and projected cash flow. It is essential for financial qualification, underwriting, and assessing the feasibility of financial goals."
+            },
+            {
+                "optionId": "5",
+                "option": "Financial Goal ",
+                "isCorrect": true,
+                "details": "**Financial Goal:** This object is central to FSC’s **goal-centric advisory model**. It represents a client's aspirations (e.g., retirement, education fund) and provides the framework for tracking progress toward those objectives."
+            }
+        ],
+        "problem_statement": "The question asks for three key objects within the Financial Services Cloud (FSC) data model that are specifically designed to model a client's core financial profile, covering their assets, income, and objectives. ",
+        "summary": "The three objects central to modeling a client's core financial profile in FSC are **Financial Holdings** (assets/investments), **Revenue** (income/cash flow), and **Financial Goal** (objectives). ",
+        "references": [
+            {
+                "text": "Financial Services Cloud Data Model Diagram",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_data_model_diagram.htm&type=5"
+            }
+        ]
+    },
+    {
+"type": "multi",
+"question": "The Investor relations director of a large insurance company just published a press release after the company’s Quarterly Earnings Call to report about its digital transformation implementing Salesforce Financial Services Cloud (FSC). <br><br>Which three value outcomes should the company’s stakeholders expect?",
+"select": 3,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Drove Advisor productivity with a daily task list, client life events, opportunities, and aggregated household information directly from the FSC Home Page.",
+        "isCorrect": true,
+        "details": "The FSC Home Page is specifically designed to aggregate critical client data and life events to prioritize advisor workflows and boost productivity."
+    },
+    {
+        "optionId": "2",
+        "option": "Automated claims orchestration via straight-through processing workflow rules from OmniStudio with minimal human intervention from insurance adjusters or underwriters, allowing claims to be completed faster and at scale.",
+        "isCorrect": false,
+        "details": "While possible, this is a highly specific technical implementation detail rather than a broad stakeholder value outcome typically highlighted in a transformation press release compared to productivity and customer experience."
+    },
+    {
+        "optionId": "3",
+        "option": "Improved customer onboarding experiences by fast-tracking and simplifying document tracking and approvals via FSC Action Plans.",
+        "isCorrect": true,
+        "details": "FSC Action Plans are a core feature used to automate and standardize the document-heavy onboarding process, providing a direct value outcome in efficiency and client experience."
+    },
+    {
+        "optionId": "4",
+        "option": "Achieved higher CSAT and NPS scores attributed to personalized customer experiences driven by shorter waits due to decreased average case handle times and improved self-service solutions via Einstein Bots for FSC.",
+        "isCorrect": true,
+        "details": "Increasing customer satisfaction (CSAT) and Net Promoter Scores (NPS) through AI-driven self-service and personalized experiences is a primary strategic goal for FSC digital transformations."
+    },
+    {
+        "optionId": "5",
+        "option": "Streamlined the entire deal lifecycle with FSC, leveraging relationship maps and interaction history in business development/discovery to accelerate pipeline management and research.",
+        "isCorrect": false,
+        "details": "This relates more to investment banking or commercial deal management rather than the core value outcomes typically emphasized for a broad insurance transformation."
+    }
+],
+    "problem_statement": "Identify the primary strategic value outcomes stakeholders expect from a Salesforce Financial Services Cloud implementation in a large insurance company context.",
+"summary": "Implementation of FSC leads to higher advisor productivity via centralized homepages, streamlined onboarding through Action Plans, and enhanced customer satisfaction (CSAT/NPS) through AI and personalized service.",
+"references": [
+]
+},
+{
+"type": "multi",
+"question": "Which three types of Account-Account relationships are displayed in the Actionable Relationship Center?",
+"select": 3,
+"options": [
+    {
+        "optionId": "1",
+        "option": "Accounts & Businesses",
+        "isCorrect": false,
+        "details": "Business is not a predefined Association Type for Account-Account Relationships in ARC; these are typically handled under Group or Peer relationships."
+    },
+    {
+        "optionId": "2",
+        "option": "Accounts & Members",
+        "isCorrect": true,
+        "details": "The 'Member' association type indicates that one account (like a person account) belongs to another (like a household)."
+    },
+    {
+        "optionId": "3",
+        "option": "Accounts & Peers",
+        "isCorrect": true,
+        "details": "The 'Peer' association type represents a relationship where two accounts are related but neither controls the other."
+    },
+    {
+        "optionId": "4",
+        "option": "Accounts & Groups",
+        "isCorrect": true,
+        "details": "The 'Group' association type identifies an account that contains other accounts, such as a parent company or a household group."
+    }
+],
+"problem_statement": "The consultant needs to identify the specific predefined association types used to categorize and display Account-Account relationships in the Salesforce Actionable Relationship Center.",
+"summary": "The Actionable Relationship Center (ARC) displays Account-Account relationships categorized by three predefined association types: **Group**, **Member**, and **Peer**.",
+"references": [
+    {
+        "text": "Types of Relationships in ARC - Salesforce Help",
+        "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_arc_associations.htm&language=en_US&type=5"
+    }
+]
+}
+
+
+
+
+
+
+//add object from here
+
+
+]; 
+    
+    let shuffledExamData; 
+    let currentQuestionIndex = 0; 
+    let userAnswers; 
+    let finalResults; // Store final grading results
+    const TIME_LIMIT = 3600; 
+    let timeLeft = TIME_LIMIT; 
+    let timerInterval; 
+    const PASSING_PERCENTAGE = 90; 
+
+    // DOM Elements
+    const instructionScreen = document.getElementById('instruction-screen');
+    const examScreen = document.getElementById('exam-screen');
+    const preSubmitScreen = document.getElementById('pre-submit-screen');
+    const resultScreen = document.getElementById('result-screen');
+    
+    // NEW/RENAMED Elements
+    const reviewSummaryTableScreen = document.getElementById('review-mode-screen'); // Used for the Review Table
+    const detailedQReviewScreen = document.getElementById('detailed-q-review-screen'); // Used for Question-by-Question Review
+    const detailedReviewQuestionContent = document.getElementById('detailed-review-question-content');
+
+    const questionPanel = document.getElementById('question-panel');
+    const timerDisplay = document.getElementById('timer');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn-footer');
+    const submitBtn = document.getElementById('submit-btn-quiz');
+    const markBtn = document.getElementById('mark-btn');
+    const trackerContainer = document.getElementById('question-tracker');
+    const startExamBtn = document.getElementById('start-exam-btn');
+    const preSubmitReviewBtn = document.getElementById('pre-submit-review-btn');
+    
+    // Detailed Review Navigation
+    const prevBtnDetailed = document.getElementById('prev-btn-detailed');
+    const nextBtnDetailed = document.getElementById('next-btn-detailed');
+    const backToSummaryTableBtn = document.getElementById('back-to-summary-table-btn');
+
+    const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+    const toggleContainer = document.getElementById('toggle-container');
+
+
+    // SIDEBAR ELEMENTS
+    const sidebar = document.getElementById('sidebar');
+    let isSidebarCollapsed = true;
+
+
+    // --- Utility Functions --- 
+    function shuffleArray(array) { 
+        for (let i = array.length - 1; i > 0; i--) { 
+            const j = Math.floor(Math.random() * (i + 1)); 
+            [array[i], array[j]] = [array[j], array[i]]; 
+        }
+        return array;
+    }
+
+    function getOptionLetter(index) {
+        return String.fromCharCode(65 + index); // A=65, B=66, etc.
+    }
+
+    function checkAnswerStatus(index) {
+        const q = shuffledExamData[index];
+        const userIds = userAnswers[index].answers;
+        const correctQty = q.select;
+
+        if (userIds.length === 0) return 'not_attempted';
+        if (userIds.length === correctQty) return 'match_qty';
+        return 'mismatch_qty';
+    }
+
+    // --- Screen Management ---
+    function hideAllScreens() {
+        instructionScreen.classList.add('hidden');
+        examScreen.classList.add('hidden');
+        preSubmitScreen.classList.add('hidden');
+        reviewSummaryTableScreen.classList.add('hidden');
+        detailedQReviewScreen.classList.add('hidden');
+        resultScreen.classList.add('hidden');
+        // Hide the toggle button when not in exam mode
+        toggleContainer.classList.add('hidden');
+    }
+
+    // --- Timer Functions ---
+    function startTimer() {
+        clearInterval(timerInterval); // Clear any existing timer
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                alert("Time's up! Submitting exam automatically.");
+                submitExam();
+            }
+        }, 1000);
+    }
+
+    // --- Sidebar Toggle Logic ---
+    function handleSidebarToggle() {
+        isSidebarCollapsed = !isSidebarCollapsed;
+        sidebar.classList.toggle('collapsed', isSidebarCollapsed);
+        
+        setTimeout(() => {
+            const arrowSpan = document.getElementById('sidebar-arrow');
+            if (isSidebarCollapsed) {
+                arrowSpan.textContent = '»'; 
+                toggleContainer.style.left = '0';
+            } else {
+                arrowSpan.textContent = '«'; 
+                toggleContainer.style.left = sidebar.offsetWidth + 'px'; 
+            }
+        }, 300); 
+    }
+    
+    // --- Exam Flow Functions ---
+    function startExam() {
+        //const limitedData = originalExamData.slice(0, 2); 
+        const limitedData = originalExamData;
+        shuffledExamData = shuffleArray( 
+            limitedData.map(q => ({ 
+                ...q,
+                shuffledOptions: shuffleArray( q.options.map(o => ({ ...o })) ) 
+            })) 
+        );
+
+        userAnswers = new Array(shuffledExamData.length)
+            .fill(null)
+            .map(() => ({ answers: [], marked: false }));
+        
+        hideAllScreens();
+        examScreen.classList.remove('hidden');
+        toggleContainer.classList.remove('hidden'); 
+        currentQuestionIndex = 0;
+        renderQuestion(currentQuestionIndex);
+        renderTracker();
+        startTimer();
+        
+        document.getElementById('sidebar-arrow').textContent = '»'; 
+        toggleContainer.style.left = sidebar.offsetWidth + 'px'; 
+    }
+
+    // --- Live Exam Rendering ---
+    function renderQuestion(index) {
+        const q = shuffledExamData[index];
+        const type = q.select === 1 ? 'radio' : 'checkbox';
+        const inputName = `q-${index}`;
+        const selectedAnswers = userAnswers[index].answers;
+        const isMarked = userAnswers[index].marked;
+
+        if (isMarked) {
+            markBtn.textContent = '🏳️ Unmark for Review';
+            markBtn.classList.add('unmark');
+        } else {
+            markBtn.textContent = '🚩 Mark for Review';
+            markBtn.classList.remove('unmark');
+        }
+        
+        const optionsToRender = q.shuffledOptions;
+        let optionsHtml = optionsToRender.map((opt, optIndex) => {
+            const optionLetter = getOptionLetter(optIndex);
+            return `
+                <li class="option-item">
+                <label>
+                    <input type="${type}" name="${inputName}" value="${opt.optionId}"
+                        ${selectedAnswers.includes(opt.optionId) ? 'checked' : ''} data-option-id="${opt.optionId}">
+                    <span class="option-label">${optionLetter}.</span> ${opt.option}
+                </label>
+                </li>
+            `;
+        }).join('');
+
+        const questionHtml = `
+            <div class="question-header">
+                <div class="question-info">
+                    <p><strong>Question ${index + 1} of ${shuffledExamData.length}</strong> 
+                    (${q.select === 1 ? 'Single Select' : `Multi Select: Choose ${q.select}`})</p>
+                </div>
+            </div>
+            
+            <p class="question-text">${q.question}</p>
+            <ul class="options-list" id="options-container">
+                ${optionsHtml}
+            </ul>
+        `;
+        questionPanel.innerHTML = questionHtml;
+        updateNavigationButtons(index, 'exam');
+        renderTracker(); 
+
+        let flagStatusElement = document.getElementById('flag-status-absolute');
+        if (!flagStatusElement) {
+            flagStatusElement = document.createElement('span');
+            flagStatusElement.id = 'flag-status-absolute';
+            document.getElementById('question-panel').appendChild(flagStatusElement);
+        }
+        flagStatusElement.textContent = '🚩';
+        flagStatusElement.style.display = isMarked ? 'block' : 'none';
+
+        questionPanel.onchange = (e) => handleOptionChange(e, index);
+    }
+
+    function handleOptionChange(e, qIndex) {
+        if (e.target.tagName === 'INPUT') {
+            const optionId = e.target.value;
+            const q = shuffledExamData[qIndex];
+
+            if (q.select === 1) {
+                userAnswers[qIndex].answers = [optionId];
+            } else { 
+                if (e.target.checked) {
+                    if (!userAnswers[qIndex].answers.includes(optionId)) {
+                        userAnswers[qIndex].answers.push(optionId);
+                    }
+                } else {
+                    userAnswers[qIndex].answers = userAnswers[qIndex].answers.filter(id => id !== optionId);
+                }
+            }
+            renderQuestion(qIndex); 
+        }
+    }
+
+    function updateNavigationButtons(index, mode) {
+        const total = shuffledExamData.length;
+        const isLast = index === total - 1;
+        const isFirst = index === 0;
+
+        const prevExam = document.getElementById('prev-btn');
+        const nextExam = document.getElementById('next-btn-footer');
+        const submitQuiz = document.getElementById('submit-btn-quiz');
+
+        if (mode === 'exam') {
+            prevExam.disabled = isFirst;
+            if (isLast) {
+                nextExam.classList.add('hidden');
+                submitQuiz.classList.remove('hidden');
+                submitQuiz.textContent = 'Submit';
+            } else {
+                nextExam.classList.remove('hidden');
+                submitQuiz.classList.add('hidden');
+            }
+        } else if (mode === 'detailed') {
+                prevBtnDetailed.disabled = isFirst;
+                nextBtnDetailed.disabled = isLast;
+        }
+    }
+
+    function renderTracker() {
+        trackerContainer.innerHTML = '';
+        shuffledExamData.forEach((q, i) => {
+            const item = document.createElement('div');
+            item.classList.add('tracker-item');
+            item.textContent = i + 1;
+            item.dataset.index = i;
+            
+            const status = checkAnswerStatus(i);
+            const isMarked = userAnswers[i].marked;
+
+            if (status === 'match_qty') {
+                item.classList.add('match-qty-q');
+            } else if (status === 'mismatch_qty') {
+                item.classList.add('mismatch-qty-q');
+            } else {
+                item.classList.add('default-q');
+            }
+
+            if (isMarked) {
+                item.classList.add('marked-q');
+            }
+
+            if (i === currentQuestionIndex) {
+                item.classList.add('current-q');
+            }
+            
+            item.addEventListener('click', () => {
+                currentQuestionIndex = i;
+                renderQuestion(currentQuestionIndex);
+            });
+
+            trackerContainer.appendChild(item);
+        });
+    }
+    
+    // --- Pre-Submit Review Screen --- 
+    function showPreSubmitReview() {
+        clearInterval(timerInterval);
+        hideAllScreens();
+        preSubmitScreen.classList.remove('hidden');
+
+        let attemptedCount = 0;
+        let markedCount = 0;
+
+        let tableHtml = `
+            <h2>Pre-Submission Summary</h2>
+            <hr>
+            <p><strong>Time Remaining:</strong> <span id="final-time">${timerDisplay.textContent}</span></p>
+            <p>Please review the status of your questions before the final submission.</p>
+            <table class="review-table">
+                <thead>
+                    <tr>
+                        <th>Q No.</th>
+                        <th>Status</th>
+                        <th>Mark for Review</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        shuffledExamData.forEach((q, index) => {
+            const status = checkAnswerStatus(index);
+            const isMarked = userAnswers[index].marked;
+            const isAnswered = status !== 'not_attempted';
+
+            if (isAnswered) attemptedCount++;
+            if (isMarked) markedCount++;
+
+            let statusText = '';
+            if (status === 'match_qty') statusText = '<span style="color:#2ecc71; font-weight: bold;">Answered (Quantity Match)</span>';
+            else if (status === 'mismatch_qty') statusText = '<span style="color:#e74c3c; font-weight: bold;">Answered (Quantity Mismatch)</span>';
+            else statusText = 'Not Attempted';
+
+            tableHtml += `
+                <tr>
+                    <td><a href="#" data-index="${index}" class="review-jump">${index + 1}</a></td>
+                    <td>${statusText}</td>
+                    <td>${isMarked ? '🚩 Marked' : '-'}</td>
+                    <td><a href="#" data-index="${index}" class="review-jump">Go to Question</a></td>
+                </tr>
+            `;
+        });
+
+        tableHtml += `
+                </tbody>
+            </table>
+            <hr>
+            <p><strong>Attempted Questions:</strong> ${attemptedCount} out of ${shuffledExamData.length}</p>
+            <p><strong>Marked for Review:</strong> ${markedCount}</p>
+            <p style="margin-top: 20px;">
+                <button id="final-submit-btn" class="brand-btn submit-btn">Final Submit</button>
+                <button id="resume-exam-btn" class="brand-btn secondary-btn">Resume Exam</button>
+            </p>
+        `;
+        preSubmitScreen.innerHTML = tableHtml;
+
+        document.getElementById('final-submit-btn').addEventListener('click', submitExam);
+        document.getElementById('resume-exam-btn').addEventListener('click', () => {
+            startTimer(); 
+            hideAllScreens();
+            examScreen.classList.remove('hidden');
+            toggleContainer.classList.remove('hidden');
+            renderQuestion(currentQuestionIndex);
+        });
+        document.querySelectorAll('.review-jump').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentQuestionIndex = parseInt(e.target.dataset.index);
+                startTimer();
+                hideAllScreens();
+                examScreen.classList.remove('hidden');
+                toggleContainer.classList.remove('hidden');
+                renderQuestion(currentQuestionIndex);
+            });
+        });
+    }
+
+
+    // --- Final Submission and Results --- 
+    function submitExam() {
+        clearInterval(timerInterval);
+        hideAllScreens();
+        resultScreen.classList.remove('hidden');
+
+        let score = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let notAttemptedCount = 0;
+        const totalQuestions = shuffledExamData.length;
+        finalResults = []; 
+
+        shuffledExamData.forEach((q, index) => {
+            const correctIds = q.options.filter(opt => opt.isCorrect).map(opt => opt.optionId);
+            const userIds = userAnswers[index].answers;
+            const isAttempted = userIds.length > 0;
+
+            const isCorrect = correctIds.length === userIds.length && correctIds.every(id => userIds.includes(id));
+
+            if (isCorrect) {
+                score++;
+                correctCount++;
+            } else if (isAttempted) {
+                incorrectCount++;
+            } else {
+                notAttemptedCount++;
+            }
+
+            finalResults.push({
+                index: index,
+                isCorrect: isCorrect,
+                isAttempted: isAttempted,
+                isMarked: userAnswers[index].marked
+            });
+        });
+
+        const finalScorePercent = (score / totalQuestions * 100).toFixed(2);
+        const isPassed = finalScorePercent >= PASSING_PERCENTAGE;
+        const scoreColor = isPassed ? '#28a745' : '#e74c3c';
+        const finalResultText = isPassed ? 'PASSED' : 'FAILED';
+
+        const resultHtml = `
+            <h2>Exam Results</h2>
+            <hr>
+            <table class="result-summary-table" style="margin: 20px auto; width: 50%; text-align: left;">
+                <tr><td style="font-weight: bold;">Status:</td><td style="background-color: ${scoreColor}; color: white; font-weight: bold;">${finalResultText}</td></tr>
+                <tr><td style="font-weight: bold;">Score:</td><td>${score} out of ${totalQuestions}</td></tr>
+                <tr><td style="font-weight: bold;">Percentage:</td><td style="font-weight: bold; color: ${scoreColor};">${finalScorePercent}%</td></tr>
+                <tr><td>Correct Answers:</td><td>${correctCount}</td></tr>
+                <tr><td>Incorrect Answers:</td><td>${incorrectCount}</td></tr>
+                <tr><td>Not Attempted:</td><td>${notAttemptedCount}</td></tr>
+            </table>
+            <p style="margin-top: 30px;">
+                <button id="view-review-btn" class="brand-btn secondary-btn" style="background-color: #9b59b6;">Solutions</button>
+            </p>
+        `;
+        resultScreen.innerHTML = resultHtml;
+
+        document.getElementById('view-review-btn').addEventListener('click', renderDetailedReviewSummaryTable);
+    }
+
+    // --- Detailed Review Summary Table Screen (The second screenshot table) ---
+    function renderDetailedReviewSummaryTable() {
+        hideAllScreens();
+        reviewSummaryTableScreen.classList.remove('hidden');
+        
+        // Ensure toggle is hidden on review screens
+        toggleContainer.classList.add('hidden');
+        
+        let tableHtml = `
+            <h2>Detailed Review Summary</h2>
+            <hr>
+            <p>Click on a question number or 'View Details' to view the detailed answer and explanation.</p>
+            <table class="review-table">
+                <thead>
+                    <tr>
+                        <th>Q No.</th>
+                        <th>Final Status</th>
+                        <th>Attempted</th>
+                        <th>Review Flag</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        finalResults.forEach((result) => {
+            const qIndex = result.index;
+            let statusText = '';
+            let statusColor = '';
+            
+            if (result.isCorrect) {
+                statusText = 'Correct';
+                statusColor = '#2ecc71';
+            } else if (result.isAttempted) {
+                statusText = 'Incorrect';
+                statusColor = '#e74c3c';
+            } else {
+                statusText = 'Not Attempted';
+                statusColor = '#95a5a6';
+            }
+
+            tableHtml += `
+                <tr>
+                    <td><a href="#" data-index="${qIndex}" class="detailed-review-jump">${qIndex + 1}</a></td>
+                    <td><span style="color:${statusColor}; font-weight: bold;">${statusText}</span></td>
+                    <td>${result.isAttempted ? 'Yes' : 'No'}</td>
+                    <td>${result.isMarked ? '🚩 Marked' : '-'}</td>
+                    <td><a href="#" data-index="${qIndex}" class="detailed-review-jump">View Details</a></td>
+                </tr>
+            `;
+        });
+
+        tableHtml += `
+                </tbody>
+            </table>
+            <p style="margin-top: 20px;">
+                <button id="back-to-results-btn-final" class="brand-btn secondary-btn">Back to Score Summary</button>
+            </p>
+        `;
+        reviewSummaryTableScreen.innerHTML = tableHtml;
+
+        // FIX: Attach the event listener to the table links after rendering the HTML
+        document.querySelectorAll('.detailed-review-jump').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                currentQuestionIndex = parseInt(e.target.dataset.index);
+                renderReviewQuestion(currentQuestionIndex); 
+            });
+        });
+        document.getElementById('back-to-results-btn-final').addEventListener('click', submitExam);
+    }
+
+    // --- Detailed Question-by-Question Review Rendering (The last screenshot page) ---
+    function renderReviewQuestion(index) {
+        hideAllScreens();
+detailedQReviewScreen.classList.remove('hidden');
+
+const q = shuffledExamData[index];
+const userIds = userAnswers[index].answers;
+const isMarked = userAnswers[index].marked;
+
+const explanationOptions = q.shuffledOptions.map((opt, i) => ({
+    ...opt,
+    letter: getOptionLetter(i)
+}));
+
+const correctOptions = explanationOptions.filter(o => o.isCorrect);
+const incorrectOptions = explanationOptions.filter(o => !o.isCorrect);
+
+const correctIds = q.options.filter(o => o.isCorrect).map(o => o.optionId);
+const isAttempted = userIds.length > 0;
+const isCorrect =
+    correctIds.length === userIds.length &&
+    correctIds.every(id => userIds.includes(id));
+
+const finalResultText = isAttempted
+    ? isCorrect ? 'CORRECT' : 'INCORRECT'
+    : 'NOT ATTEMPTED';
+
+const resultColor = isCorrect ? '#28a745' : '#dc3545';
+
+/* ========= OPTIONS LIST WITH ICONS ========= */
+const optionsHtml = explanationOptions.map(o => {
+    const isUserSelected = userIds.includes(o.optionId);
+
+    let cls = '';
+    let symbolHtml = '';
+    const CHECK_MARK = '&#10003;'; // ✓
+    const X_MARK = '&#10005;';   // ✕
+
+    // Correct option → green check
+    if (o.isCorrect) {
+        cls = 'correct-answer-rev';
+        symbolHtml = `<span class="symbol-correct">${CHECK_MARK}</span>`;
+    }
+    
+
+    // User selected wrong option → red X
+        if (isUserSelected && !o.isCorrect) {
+        cls = 'incorrect-user-selected';
+        symbolHtml = `<span class="symbol-incorrect">${X_MARK} (Your Selection)</span>`;
+    }
+    if (isUserSelected && o.isCorrect) {
+        cls = 'correct-answer-rev';
+        symbolHtml = `<span class="symbol-correct">${CHECK_MARK} (Correct Answer & Your Selection)</span>`;
+    }
+
+
+    return `
+        <li class="option-item ${cls}">
+            <label>
+                <input type="${q.type === 'single' ? 'radio' : 'checkbox'}"
+                        disabled
+                        ${isUserSelected || o.isCorrect ? 'checked' : ''}>
+                <strong>${o.letter}.</strong> ${o.option}
+                ${symbolHtml}
+            </label>
+        </li>
+    `;
+}).join('');
+
+/* ========= EXPLANATION CONTENT ========= */
+const explanationHtml = `
+    <div class="problem-statement-brief">
+        Problem Statement Briefly:
+    </div>
+    <p>${q.problem_statement}</p>
+
+    <div class="correct-answers-box">
+        <h4>Correct Answers:</h4>
+        ${correctOptions.map(o =>
+            `<p><strong>Option ${o.letter}:</strong> ${o.option}</p>`
+        ).join('')}
+        <p>${q.summary}</p>
+    </div>
+
+    ${correctOptions.map(o => `
+        <p class="correct-option-detail">
+            <strong>${o.letter}. (Correct):</strong> ${o.details}
+        </p>
+    `).join('')}
+
+    <div class="incorrect-options-header">Incorrect Options:</div>
+    ${incorrectOptions.map(o => `
+        <p class="incorrect-option-detail">
+            <strong>${o.letter}. (Incorrect):</strong> ${o.details}
+        </p>
+    `).join('')}
+
+    ${q.references?.length ? `
+        <div class="reference-links-header">Reference Links:</div>
+        <ul class="reference-links-list">
+            ${q.references.map(r =>
+                `<li><a href="${r.url}" target="_blank">${r.text}</a></li>`
+            ).join('')}
+        </ul>
+    ` : ''}
+`;
+
+/* ========= FINAL HTML ========= */
+detailedReviewQuestionContent.innerHTML = `
+    <h3>Question ${index + 1} of ${shuffledExamData.length} ${isMarked ? '🚩' : ''}</h3>
+    <p class="question-text">${q.question}</p>
+
+    <p><strong>Your Attempt:</strong> ${isAttempted ? 'Yes' : 'No'}</p>
+    <p style="font-weight:bold; color:${resultColor};">
+        Final Result: ${finalResultText}
+    </p>
+
+    <ul class="options-list">${optionsHtml}</ul>
+
+    <button id="explanation-toggle-btn"
+            class="brand-btn secondary-btn"
+            style="margin-top:20px;">
+        Show Explanation
+    </button>
+
+    <div id="explanation-panel"
+            class="explanation-panel hidden">
+        ${explanationHtml}
+    </div>
+`;
+
+/* ========= TOGGLE LOGIC ========= */
+const toggleBtn = document.getElementById('explanation-toggle-btn');
+const explanationPanel = document.getElementById('explanation-panel');
+
+if (toggleBtn && explanationPanel) {
+    toggleBtn.addEventListener('click', () => {
+        const isHidden = explanationPanel.classList.contains('hidden');
+        explanationPanel.classList.toggle('hidden');
+        toggleBtn.textContent = isHidden ? 'Hide Explanation' : 'Show Explanation';
+    });
+}
+
+updateNavigationButtons(index, 'detailed');
+        // Add event listeners for explanation toggles
+        document.querySelectorAll('.explanation-toggle-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const targetId = e.target.dataset.target;
+                const explanationDiv = document.getElementById(targetId);
+                if (explanationDiv) {
+                    explanationDiv.classList.toggle('hidden');
+                    e.target.textContent = explanationDiv.classList.contains('hidden') ? 'Show Explanation' : 'Hide Explanation';
+                }
+            });
+        });
+    }
+    
+    // --- Event Listeners ---
+
+    // Exam Navigation
+    prevBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion(currentQuestionIndex);
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentQuestionIndex < shuffledExamData.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion(currentQuestionIndex);
+        }
+    });
+    
+    markBtn.addEventListener('click', () => {
+        userAnswers[currentQuestionIndex].marked = !userAnswers[currentQuestionIndex].marked;
+        renderQuestion(currentQuestionIndex); 
+    });
+
+    startExamBtn.addEventListener('click', startExam);
+    preSubmitReviewBtn.addEventListener('click', showPreSubmitReview);
+    submitBtn.addEventListener('click', showPreSubmitReview);
+
+    // Detailed Review Mode Navigation
+    prevBtnDetailed.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderReviewQuestion(currentQuestionIndex);
+        }
+    });
+
+    nextBtnDetailed.addEventListener('click', () => {
+        if (currentQuestionIndex < shuffledExamData.length - 1) {
+            currentQuestionIndex++;
+            renderReviewQuestion(currentQuestionIndex);
+        }
+    });
+    
+    // Go back to the Summary Table from the Detailed Question View
+    backToSummaryTableBtn.addEventListener('click', renderDetailedReviewSummaryTable); 
+    
+    // Final listener for the main toggle button 
+    toggleSidebarBtn.addEventListener('click', handleSidebarToggle);
+</script>
+
+</body>
+</html>
