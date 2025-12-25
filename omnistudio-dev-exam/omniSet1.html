@@ -786,6 +786,100 @@ Then open on the device/emulator using your PC IP, e.g.
 
         ]
 
+    },
+    {
+        "type": "multi",
+        "question": "A company wants to convert its Salesforce Financial Services Cloud implementation from using the individual account model to using person accounts. <br><br> Which three things should a consultant do to prepare for the conversion?",
+        "select": 3,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "Test out the conversion in a sandbox, including all integrations and customizations",
+                "isCorrect": true,
+                "details": "Testing in a sandbox is a mandatory best practice to ensure integrations, customizations, and automations are not broken by the data model change."
+            },
+            {
+                "optionId": "2",
+                "option": "Ensure each account.phone field in the individual account record is blank ",
+                "isCorrect": false,
+                "details": "Phone fields are typically merged, not blanked, to prevent data loss."
+            },
+            {
+                "optionId": "3",
+                "option": "Ensure all individual account records to be converted are only linked to exactly one contact record",
+                "isCorrect": true,
+                "details": "The conversion tool requires a strict one-to-one relationship between the Individual Account and its corresponding Contact to merge them into a single Person Account."
+            },
+            {
+                "optionId": "4",
+                "option": "Ensure each individual account to be converted is not a parent account of any other account records. ",
+                "isCorrect": true,
+                "details": "Person Accounts cannot be a parent account to a Business Account, so existing parent-child Account relationships involving the individual account must be resolved first."
+            },
+            {
+                "optionId": "5",
+                "option": "Update all opportunities linked to individual account records to be owned by the individual account record's owner",
+                "isCorrect": false,
+                "details": "Opportunities are linked to the Account and owned by Users; changing ownership to a Contact is unnecessary and incorrect."
+            }
+        ],
+        "problem_statement": "The goal is to migrate a Salesforce Financial Services Cloud (FSC) implementation from the **Individual Account Model** (Account + Contact for a person) to the **Person Account Model** (a single record for a person). This change requires specific data preparation steps.",
+        
+        "summary": "The preparation involves **testing** the change in a sandbox, ensuring a **strict one-to-one relationship** between the Individual Account and its Contact, and resolving any **parent-child account hierarchies** where the individual account is the parent. ",
+        
+        "references": [
+            {
+                "text": "Transform the Individual Data Model to Person Accounts in Financial Services Cloud",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_person_accounts.htm&type=5"
+            },
+            {
+                "text": "Convert Individual Model Account and Contact Records to Person Account Records in Financial Services Cloud",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_admin_transform_ia_to_pa.htm&type=5"
+            },
+            {
+                "text": "Setting Up Person Accounts",
+                "url": "https://resources.docs.salesforce.com/latest/latest/en-us/sfdc/pdf/impl_person_accounts.pdf"
+            }
+        ]
+    },
+    {
+        "type": "single",
+        "question": "A retail bank is using Financial Services Cloud to support its operations. The bank has received complaints that its clients' documentation is often submitted late and when clients call, customer service agents are struggling with multiple systems to determine where the documentation is. <br> <br> Which solution should a consultant suggest the client explore?",
+        "select": 1,
+        "options": [
+            {
+                "optionId": "1",
+                "option": "An APEX solution to leverage the SendMail capabilities of Salesforce ",
+                "isCorrect": false,
+                "details": "An APEX solution to leverage the SendMail capabilities of Salesforce is a custom and overly complex solution for a process that can be addressed by a standard FSC feature."
+            },
+            {
+                "optionId": "2",
+                "option": "A Marketing Cloud integration to manage client communications ",
+                "isCorrect": false,
+                "details": "A Marketing Cloud integration is designed for mass or campaign-based communications, not for the transactional, document-specific communication required in an onboarding process."
+            },
+            {
+                "optionId": "3",
+                "option": "The Send Documents flow for Retail Banking ",
+                "isCorrect": true,
+                "details": "The 'Send Documents' flow is the most appropriate FSC-specific solution. It is an out-of-the-box feature that provides a streamlined, guided, and integrated user experience for document submission and communication required during the retail banking onboarding process."
+            },
+            {
+                "optionId": "4",
+                "option": "Process Builder to create automated document requests for missing items ",
+                "isCorrect": false,
+                "details": "Process Builder is a legacy automation tool and, while it can create requests, it does not provide the integrated, guided, and streamlined user experience for document submission and communication that the 'Send Documents' flow offers."
+            }
+        ],
+        "problem_statement": "The core problem is a cumbersome onboarding process where service agents use multiple systems to capture data and documents, leading to a poor client experience. The consultant must recommend a streamlined, single-screen FSC feature to manage document collection and communications efficiently.",
+        "summary": "The correct recommendation is **The Send Documents flow for Retail Banking**. This is an out-of-the-box FSC feature designed to simplify and digitize the process of collecting required documents from clients during onboarding, directly addressing the cumbersome and multi-system data capture problem.",
+        "references": [
+            {
+                "text": "Add Documents to the Send Documents Flow",
+                "url": "https://help.salesforce.com/s/articleView?id=ind.fsc_flows_admin_add_documents.htm&type=5"
+            }
+        ]
     }
    
 
