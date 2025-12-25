@@ -478,6 +478,40 @@
     }
     /* --- END NEW STYLES --- */
     
+/* Responsive adjustments for mobile screens */
+@media (max-width: 992px) {
+    .main-layout-wrapper { max-width: 100%; margin: 12px; height: calc(100vh - 24px); }
+    .header { padding: 12px 16px; }
+}
+@media (max-width: 768px) {
+    html, body { height: auto; overflow: auto; }
+    .main-layout-wrapper { height: auto; display: block; border-radius: 6px; }
+    .exam-layout { flex-direction: column; align-items: stretch; }
+    .sidebar { width: 100%; min-width: 0; padding: 12px; order: 2; border-right: none; border-top: 1px solid #ddd; background-color: #f8f9fa; transition: max-height 0.25s ease; }
+    .sidebar.collapsed { display: none; height: 0; padding: 0; border: none; }
+    .exam-main-area { order: 1; padding: 12px; }
+    #instruction-screen, .review-screen-content, #exam-screen { height: auto; overflow: auto; padding: 16px; }
+    .header h3 { font-size: 1.1em; }
+    .timer-display { font-size: 1em; }
+    .question-tracker { gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; padding-bottom:6px; }
+    .tracker-item { display: inline-block; flex: 0 0 auto; width: 34px; height: 34px; line-height:34px; font-size: 0.85em; margin-right:6px; }
+    .options-list .option-item { font-size: 0.98em; padding: 10px; }
+    .footer { flex-wrap: wrap; gap: 8px; align-items:center; }
+    #toggle-container.hidden { display: block !important; }
+    #toggle-container { position: absolute; left: 12px; top: 68px; z-index: 1200; }
+    .toggle-btn { padding: 8px 10px; }
+    input[type="radio"], input[type="checkbox"] { width: 18px; height: 18px; }
+}
+@media (max-width: 480px) {
+    .header { flex-direction: column; align-items: flex-start; gap: 8px; padding: 10px; }
+    .header h3 { font-size: 1em; }
+    .timer-display { align-self: flex-end; font-size: 0.95em; }
+    .question-text { font-size: 0.98em; }
+    .problem-statement-brief { font-size: 1.05em; }
+    .correct-answers-box, .explanation-panel { padding: 10px; }
+    .question-tracker { gap: 6px; }
+    .tracker-item { width: 30px; height: 30px; line-height:30px; font-size:0.82em; }
+}
 </style>
 </head>
 <body>
